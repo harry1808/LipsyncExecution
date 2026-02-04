@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}VidDub Studio · AI Video Dubbing{% endblock %}
+{% block content %}
+<div class="workspace-shell landing-hero" style="background-image: linear-gradient(135deg, rgba(10, 8, 27, 0.9), rgba(15, 15, 38, 0.85)), url('{{ hero_bg }}');">
+<div class="row align-items-center g-5">
+    <div class="col-lg-6">
+        <p class="badge bg-gradient text-uppercase">AI powered dubbing</p>
+        <h1 class="display-4 fw-bold mb-4">Give your videos a native voice in any language.</h1>
+        <p class="lead text-secondary">Seamlessly transcribe, translate, and regenerate voiceovers with studio-grade quality. Track every project from a beautiful dashboard.</p>
+        <div class="d-flex gap-3 mt-4">
+            <a class="btn btn-primary btn-lg" href="{{ url_for('auth.register') }}">Create free account</a>
+            <a class="btn btn-outline-light btn-lg" href="{{ url_for('auth.login') }}">I already have access</a>
+        </div>
+        <div class="mt-5 d-flex gap-4 stats flex-wrap">
+            <div>
+                <span class="h2 fw-bold">30+</span>
+                <p class="text-secondary mb-0">languages supported</p>
+            </div>
+            <div>
+                <span class="h2 fw-bold">Secure</span>
+                <p class="text-secondary mb-0">activity history</p>
+            </div>
+        </div>
+        <div class="language-cloud mt-4">
+            {% for lang in languages %}
+                <span class="pill">{{ lang.label }} ({{ lang.code|upper }})</span>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="ui-preview shadow-lg">
+            <img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1200&q=80" alt="Studio preview" class="img-fluid rounded-4">
+        </div>
+    </div>
+</div>
+</div>
+{% endblock %}
+

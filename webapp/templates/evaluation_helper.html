@@ -1,0 +1,361 @@
+{% extends "base.html" %}
+
+{% block title %}Evaluation Helper - Compare Translations{% endblock %}
+
+{% block content %}
+<style>
+    .comparison-box {
+        background-color: #ffffff;
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    .translation-text {
+        font-family: 'Courier New', monospace;
+        font-size: 16px;
+        line-height: 1.8;
+        color: #000000;
+        padding: 15px;
+        background-color: #f8f9fa;
+        border-radius: 5px;
+        min-height: 150px;
+    }
+    .copy-btn {
+        margin-top: 10px;
+    }
+    .similarity-badge {
+        font-size: 18px;
+        padding: 10px 20px;
+    }
+    .warning-box {
+        background-color: #fff3cd;
+        border-left: 4px solid #ffc107;
+        padding: 15px;
+        margin: 20px 0;
+    }
+</style>
+
+<div class="container mt-5">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5">🔍 Evaluation Helper: Translation Comparison</h1>
+            <p class="text-muted">Compare your system's translation with Google Translate to create better ground truth</p>
+        </div>
+    </div>
+
+    <!-- Warning Box -->
+    <div class="warning-box">
+        <h5><i class="bi bi-exclamation-triangle"></i> Why Direct Google Translate May Give Poor Scores</h5>
+        <p class="mb-0">
+            <strong>BLEU score measures exact word and phrase matching.</strong> Even if both translations are 
+            semantically correct, different word choices will result in low BLEU scores. 
+            <strong>Best Practice:</strong> Use your system's translation as a base and manually correct any errors.
+        </p>
+    </div>
+
+    <!-- Comparison Section -->
+    <form method="POST" action="{{ url_for('main.evaluate_activity', activity_id=activity.id) }}">
+        <!-- Hidden fields with exact values from database -->
+        <input type="hidden" id="system-translation-value" value="{{ activity.translated_text or '' }}">
+        <input type="hidden" id="system-transcript-value" value="{{ activity.transcript or '' }}">
+        
+        <div class="row">
+            <!-- System Translation -->
+            <div class="col-md-6">
+                <div class="comparison-box border-primary">
+                    <h5 class="text-primary">
+                        <i class="bi bi-robot"></i> Your System's Translation
+                    </h5>
+                    <p class="text-muted small">{{ activity.dest_lang }}</p>
+                    <div class="translation-text" id="system-translation">
+                        {{ activity.translated_text or 'Translation not available' }}
+                    </div>
+                    <button type="button" class="btn btn-outline-primary copy-btn" 
+                            onclick="copyToClipboard('system-translation-value', 'ground-truth-input')">
+                        <i class="bi bi-clipboard"></i> Copy to Ground Truth →
+                    </button>
+                </div>
+            </div>
+
+            <!-- Google Translate / Manual Entry -->
+            <div class="col-md-6">
+                <div class="comparison-box border-success">
+                    <h5 class="text-success">
+                        <i class="bi bi-translate"></i> Ground Truth Translation
+                    </h5>
+                    <p class="text-muted small">Edit to create accurate ground truth</p>
+                    <textarea 
+                        class="form-control translation-text" 
+                        id="ground-truth-input"
+                        name="ground_truth_translation"
+                        rows="6"
+                        placeholder="Paste Google Translate OR system translation here, then manually verify and correct..."
+                        required></textarea>
+                    <small class="form-text text-muted">
+                        💡 <strong>Tip:</strong> Start with system translation and fix only the errors
+                    </small>
+                    <small class="form-text text-info d-block mt-1">
+                        <strong>Characters:</strong> <span id="gt-translation-length">0</span> | 
+                        <strong>System has:</strong> <span id="system-translation-length">{{ (activity.translated_text or '')|length }}</span>
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Original Transcript Section -->
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="comparison-box border-info">
+                    <h5 class="text-info">
+                        <i class="bi bi-mic"></i> System Transcript ({{ activity.source_lang }})
+                    </h5>
+                    <div class="translation-text" id="system-transcript-display">
+                        {{ activity.transcript or 'Transcript not available' }}
+                    </div>
+                    <button type="button" class="btn btn-outline-info copy-btn" 
+                            onclick="copyToClipboard('system-transcript-value', 'ground-truth-transcript')">
+                        <i class="bi bi-clipboard"></i> Copy to Ground Truth →
+                    </button>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="comparison-box border-success">
+                    <h5 class="text-success">
+                        <i class="bi bi-check-circle"></i> Ground Truth Transcript
+                    </h5>
+                    <textarea 
+                        class="form-control translation-text" 
+                        id="ground-truth-transcript"
+                        name="ground_truth_transcript"
+                        rows="6"
+                        placeholder="Enter or verify the actual spoken text..."
+                        required></textarea>
+                    <small class="form-text text-info d-block mt-1">
+                        <strong>Characters:</strong> <span id="gt-transcript-length">0</span> | 
+                        <strong>System has:</strong> <span id="system-transcript-length">{{ (activity.transcript or '')|length }}</span>
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recommendations -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card border-warning">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0"><i class="bi bi-lightbulb"></i> Best Practices for Ground Truth</h5>
+                    </div>
+                    <div class="card-body" style="background: white; color: black;">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>✅ DO:</h6>
+                                <ul>
+                                    <li>Start with your <strong>system's translation</strong></li>
+                                    <li>Manually correct only actual errors</li>
+                                    <li>Keep similar phrasing and structure</li>
+                                    <li>Use consistent terminology</li>
+                                    <li>Verify with native speakers if possible</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>❌ DON'T:</h6>
+                                <ul>
+                                    <li>Use raw Google Translate directly</li>
+                                    <li>Use completely different phrasing</li>
+                                    <li>Mix formal/informal styles</li>
+                                    <li>Change word order unnecessarily</li>
+                                    <li>Use synonyms when original word is correct</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <h6>📊 Why This Matters:</h6>
+                        <p class="mb-0">
+                            <strong>BLEU score formula:</strong> Measures exact n-gram matching (1-4 word sequences).
+                            If your ground truth uses "Hello" and system uses "Hi", BLEU will penalize it even though
+                            both are correct. By starting with system output, you ensure fair evaluation of actual errors.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comparison Check -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card border-info">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="mb-0">
+                            <i class="bi bi-check-circle"></i> Pre-Submission Check
+                        </h6>
+                    </div>
+                    <div class="card-body" style="background: white; color: black;">
+                        <p class="mb-2">
+                            <strong>💡 Tip:</strong> If your ground truth exactly matches the system output, you should see <strong>100%</strong> BLEU score.
+                            If you're seeing low scores (e.g., 52%), it means the text doesn't match exactly.
+                        </p>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Translation Match:</strong></p>
+                                <p id="translation-match-status" class="text-muted">
+                                    <small>Click "Copy to Ground Truth" to check</small>
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Transcript Match:</strong></p>
+                                <p id="transcript-match-status" class="text-muted">
+                                    <small>Click "Copy to Ground Truth" to check</small>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <button type="submit" class="btn btn-success btn-lg w-100">
+                    <i class="bi bi-calculator"></i> Calculate Evaluation Metrics
+                </button>
+            </div>
+        </div>
+    </form>
+
+    <!-- Back Button -->
+    <div class="row mt-3">
+        <div class="col-12">
+            <a href="{{ url_for('main.evaluation_page') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Evaluation List
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyToClipboard(sourceId, targetId) {
+    const sourceElement = document.getElementById(sourceId);
+    const targetElement = document.getElementById(targetId);
+    
+    if (!sourceElement || !targetElement) {
+        console.error('Source or target element not found:', sourceId, targetId);
+        return;
+    }
+    
+    // Get exact value from hidden input (not from displayed text)
+    let text = sourceElement.value;
+    
+    // Set to target (exact copy, no modifications)
+    targetElement.value = text;
+    
+    // Update character count
+    updateCharCount(targetId);
+    
+    // Visual feedback
+    const button = event.target.closest('button');
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="bi bi-check"></i> Copied!';
+    button.classList.add('btn-success');
+    button.classList.remove('btn-outline-primary', 'btn-outline-info');
+    
+    setTimeout(() => {
+        button.innerHTML = originalText;
+        button.classList.remove('btn-success');
+        button.classList.add(sourceId.includes('translation') ? 'btn-outline-primary' : 'btn-outline-info');
+    }, 2000);
+}
+
+function updateCharCount(textareaId) {
+    const textarea = document.getElementById(textareaId);
+    if (!textarea) return;
+    
+    const length = textarea.value.length;
+    let counterId, systemValueId, statusId;
+    
+    if (textareaId === 'ground-truth-input') {
+        counterId = 'gt-translation-length';
+        systemValueId = 'system-translation-value';
+        statusId = 'translation-match-status';
+    } else if (textareaId === 'ground-truth-transcript') {
+        counterId = 'gt-transcript-length';
+        systemValueId = 'system-transcript-value';
+        statusId = 'transcript-match-status';
+    }
+    
+    if (counterId) {
+        const counter = document.getElementById(counterId);
+        if (counter) {
+            counter.textContent = length;
+            
+            // Check exact match with system output
+            const systemValue = document.getElementById(systemValueId);
+            const statusElement = document.getElementById(statusId);
+            
+            if (systemValue && statusElement) {
+                const isExactMatch = textarea.value === systemValue.value;
+                
+                if (isExactMatch) {
+                    counter.style.color = 'green';
+                    counter.style.fontWeight = 'bold';
+                    statusElement.innerHTML = '<span class="text-success"><i class="bi bi-check-circle-fill"></i> Exact match! Expected BLEU: ~100%</span>';
+                } else {
+                    counter.style.color = 'black';
+                    counter.style.fontWeight = 'normal';
+                    
+                    // Calculate similarity percentage
+                    const systemText = systemValue.value;
+                    const similarity = calculateSimilarity(systemText, textarea.value);
+                    
+                    if (similarity > 90) {
+                        statusElement.innerHTML = `<span class="text-warning"><i class="bi bi-exclamation-triangle-fill"></i> Very close (${similarity.toFixed(0)}% similar) - minor differences detected</span>`;
+                    } else {
+                        statusElement.innerHTML = `<span class="text-danger"><i class="bi bi-x-circle-fill"></i> Different (${similarity.toFixed(0)}% similar) - significant changes detected</span>`;
+                    }
+                }
+            }
+        }
+    }
+}
+
+function calculateSimilarity(str1, str2) {
+    // Simple character-based similarity
+    const len1 = str1.length;
+    const len2 = str2.length;
+    const maxLen = Math.max(len1, len2);
+    
+    if (maxLen === 0) return 100;
+    
+    // Count matching characters at same positions
+    let matches = 0;
+    for (let i = 0; i < Math.min(len1, len2); i++) {
+        if (str1[i] === str2[i]) matches++;
+    }
+    
+    return (matches / maxLen) * 100;
+}
+
+// Initialize character counters
+document.addEventListener('DOMContentLoaded', function() {
+    const gtTranslation = document.getElementById('ground-truth-input');
+    const gtTranscript = document.getElementById('ground-truth-transcript');
+    
+    if (gtTranslation) {
+        gtTranslation.addEventListener('input', function() {
+            updateCharCount('ground-truth-input');
+        });
+    }
+    
+    if (gtTranscript) {
+        gtTranscript.addEventListener('input', function() {
+            updateCharCount('ground-truth-transcript');
+        });
+    }
+});
+</script>
+{% endblock %}
+

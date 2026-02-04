@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}Evaluate Activity - Video Dubbing System{% endblock %}
+
+{% block content %}
+<style>
+    /* Fix textarea visibility in dark mode */
+    textarea.form-control {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        border: 1px solid #ced4da !important;
+    }
+    textarea.form-control:focus {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        border-color: #86b7fe !important;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+    }
+    textarea.form-control::placeholder {
+        color: #6c757d !important;
+        opacity: 1 !important;
+    }
+    /* Fix card text visibility */
+    .card-body {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+    .card-body p {
+        color: #000000 !important;
+    }
+    .form-label {
+        color: #000000 !important;
+    }
+    .form-text {
+        color: #6c757d !important;
+    }
+</style>
+<div class="container mt-5">
+    <div class="row mb-4">
+        <div class="col">
+            <a href="{{ url_for('main.evaluation_page') }}" class="btn btn-outline-secondary mb-3">
+                <i class="bi bi-arrow-left"></i> Back to Evaluation List
+            </a>
+            <a href="{{ url_for('main.evaluation_helper', activity_id=activity.id) }}" class="btn btn-warning mb-3 ms-2">
+                <i class="bi bi-lightbulb"></i> Use Evaluation Helper (Recommended)
+            </a>
+            <h1 class="display-5">📝 Evaluate: {{ activity.filename }}</h1>
+            <p class="text-muted">
+                <span class="badge bg-secondary">{{ activity.source_lang }}</span>
+                <i class="bi bi-arrow-right"></i>
+                <span class="badge bg-info">{{ activity.dest_lang }}</span>
+                | {{ activity.created_at.strftime('%Y-%m-%d %H:%M') }}
+            </p>
+        </div>
+    </div>
+
+    <!-- Current Results -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0">🎤 System Transcript ({{ activity.source_lang }})</h6>
+                </div>
+                <div class="card-body">
+                    <p class="font-monospace">{{ activity.transcript or 'Not available' }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-info">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0">🌐 System Translation ({{ activity.dest_lang }})</h6>
+                </div>
+                <div class="card-body">
+                    <p class="font-monospace">{{ activity.translated_text or 'Not available' }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ground Truth Form -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">📊 Enter Ground Truth for Evaluation</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="mb-4">
+                            <label for="ground_truth_transcript" class="form-label">
+                                <strong>Ground Truth Transcript ({{ activity.source_lang }})</strong>
+                            </label>
+                            <textarea 
+                                class="form-control font-monospace" 
+                                id="ground_truth_transcript" 
+                                name="ground_truth_transcript" 
+                                rows="4" 
+                                required
+                                placeholder="Enter what was actually said in the original video..."></textarea>
+                            <small class="form-text text-muted">
+                                This should be the accurate transcription of what was spoken in the source language.
+                            </small>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="ground_truth_translation" class="form-label">
+                                <strong>Ground Truth Translation ({{ activity.dest_lang }})</strong>
+                            </label>
+                            <textarea 
+                                class="form-control font-monospace" 
+                                id="ground_truth_translation" 
+                                name="ground_truth_translation" 
+                                rows="4" 
+                                required
+                                placeholder="Enter the expected correct translation..."></textarea>
+                            <small class="form-text text-muted">
+                                This should be the correct/expected translation in the target language.
+                            </small>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="bi bi-calculator"></i> Calculate Evaluation Metrics
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Warning Section -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="alert alert-warning">
+                <h6><i class="bi bi-exclamation-triangle"></i> Warning: Don't Use Raw Google Translate!</h6>
+                <p class="mb-2">
+                    <strong>Using Google Translate directly will give artificially LOW scores!</strong> 
+                    This is because BLEU (translation quality metric) measures exact word and phrase matching.
+                </p>
+                <p class="mb-2">
+                    <strong>Why?</strong> Even if both your system and Google Translate are semantically correct,
+                    different word choices (e.g., "Hi" vs "Hello") cause low BLEU scores.
+                </p>
+                <p class="mb-0">
+                    <strong>✅ Solution:</strong> Use the 
+                    <a href="{{ url_for('main.evaluation_helper', activity_id=activity.id) }}" class="alert-link">
+                        <strong>Evaluation Helper</strong>
+                    </a> 
+                    to start with your system's translation and manually correct only actual errors.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Section -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="alert alert-info">
+                <h6><i class="bi bi-lightbulb"></i> Tips for Ground Truth:</h6>
+                <ul class="mb-0">
+                    <li><strong>Transcript:</strong> Should match exactly what was said in the video (word-for-word)</li>
+                    <li><strong>Translation:</strong> Should be a high-quality reference translation</li>
+                    <li><strong>Best Practice:</strong> Start with your system's output, then verify and correct errors</li>
+                    <li><strong>Avoid:</strong> Using completely different phrasing or synonyms when original is correct</li>
+                    <li><strong>Professional translations:</strong> Use verified translations when possible</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

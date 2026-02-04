@@ -1,0 +1,232 @@
+:root {
+    --primary: #7b61ff;
+    --card-bg: rgba(255, 255, 255, 0.05);
+    --card-border: rgba(255, 255, 255, 0.08);
+    --text-soft: #a0a0b2;
+    --gradient: linear-gradient(120deg, #7b61ff, #4ec5f1);
+}
+
+body {
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    min-height: 100vh;
+    color: #eef2ff;
+    background: radial-gradient(circle at 15% 20%, #6f66ff 0%, #2b2569 38%, #0e0b2c 78%);
+}
+
+main.container {
+    max-width: 1280px;
+    padding: 2.5rem 2rem;
+}
+
+.workspace-shell {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.landing-hero {
+    padding: 3rem;
+    background-size: cover;
+    background-position: center;
+    border-radius: 2rem;
+    box-shadow: 0 40px 80px rgba(0, 0, 0, 0.55);
+}
+
+.glass-nav {
+    background: rgba(12, 11, 30, 0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--card-border);
+}
+
+.glass-panel {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 1.25rem;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+
+.btn-primary {
+    background-image: var(--gradient);
+    border: none;
+    box-shadow: 0 10px 25px rgba(123, 97, 255, 0.4);
+}
+
+.btn-primary:hover {
+    filter: brightness(1.05);
+}
+
+.badge.bg-gradient {
+    background-image: var(--gradient);
+    border: none;
+}
+
+.flash-stack .alert {
+    border-radius: 999px;
+}
+
+.form-control,
+.form-select {
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: #fff;
+    min-height: 48px;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #a78bfa;
+    box-shadow: 0 0 0 0.2rem rgba(123, 97, 255, 0.25);
+}
+
+.form-label {
+    color: rgba(255, 255, 255, 0.82);
+    font-weight: 500;
+}
+
+.form-control::placeholder {
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.form-select option {
+    background-color: #161233;
+    color: #f5f5ff;
+}
+
+.form-select optgroup {
+    background-color: #161233;
+    color: #cfd3ff;
+    font-weight: 600;
+}
+
+.form-control::file-selector-button {
+    background: rgba(255, 255, 255, 0.12);
+    border: 0;
+    color: #fff;
+}
+
+.status-completed {
+    background: rgba(46, 213, 115, 0.2);
+    color: #2ed573;
+}
+
+.status-processing,
+.status-pending {
+    background: rgba(255, 180, 0, 0.2);
+    color: #feca57;
+}
+
+.status-failed {
+    background: rgba(255, 82, 82, 0.2);
+    color: #ff5252;
+}
+
+.step-list li {
+    padding: 0.4rem 0;
+}
+
+.empty-state {
+    border: 1px dashed var(--card-border);
+    border-radius: 1.25rem;
+}
+
+.language-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+}
+
+.pill {
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 999px;
+    padding: 0.35rem 0.95rem;
+    font-size: 0.9rem;
+}
+
+.preview-player {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: #000;
+    box-shadow: 0 40px 80px rgba(0, 0, 0, 0.45);
+    max-height: 700px;
+    object-fit: cover;
+}
+
+.video-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.video-tile {
+    max-width: 420px;
+    margin: 0 auto;
+}
+
+.video-tile h6 {
+    font-weight: 600;
+}
+
+.text-secondary {
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.card-title,
+h2,
+h4,
+h5 {
+    color: #fefcff;
+}
+
+.card {
+    background-clip: border-box;
+}
+
+.workflow-card li {
+    color: rgba(255, 255, 255, 0.78);
+}
+
+.nav-link {
+    color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.nav-link.btn {
+    color: #fff !important;
+}
+
+.auth-grid {
+    max-width: 1080px;
+    margin: 0 auto;
+}
+
+.auth-illustration {
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 1.25rem;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.auth-illustration img {
+    width: 100%;
+    border-radius: 1rem;
+    margin-top: 1.5rem;
+    box-shadow: 0 30px 60px rgba(6, 3, 20, 0.5);
+    object-fit: cover;
+}
+
+.auth-illustration .badge {
+    letter-spacing: 0.1em;
+}
+
+.auth-illustration p {
+    color: rgba(255, 255, 255, 0.88);
+}
+
+@media (max-width: 768px) {
+    main.container {
+        padding: 1.5rem 1.25rem;
+    }
+}
+

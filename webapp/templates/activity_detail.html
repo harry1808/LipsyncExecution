@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Activity #{{ activity.id }} · VidDub Studio{% endblock %}
+{% block content %}
+<a class="link-light text-decoration-none mb-3 d-inline-flex align-items-center" href="{{ url_for('main.dashboard') }}">← Back to dashboard</a>
+<div class="card glass-panel mb-4">
+    <div class="card-body">
+        <div class="d-flex flex-wrap justify-content-between">
+            <div>
+                <h3 class="mb-1">{{ activity.filename }}</h3>
+                <p class="text-secondary mb-0">Source → Target: {{ activity.source_lang }} → {{ activity.dest_lang }}</p>
+            </div>
+            <div>
+                <span class="badge rounded-pill status-{{ activity.status }} fs-6">{{ activity.status|capitalize }}</span>
+            </div>
+        </div>
+        <p class="text-secondary mt-3 mb-0">Created {{ activity.created_at.strftime("%b %d, %Y %H:%M") }}</p>
+        <form method="post" action="{{ url_for('main.delete_activity', activity_id=activity.id) }}" class="mt-3" onsubmit="return confirm('Delete this activity and remove stored files?');">
+            <button class="btn btn-outline-danger">Delete this activity</button>
+        </form>
+    </div>
+</div>
+
+{% if activity.status == "completed" %}
+    <div class="card glass-panel mb-4">
+        <div class="card-body">
+            <h5 class="mb-3">Preview</h5>
+            <div class="video-grid mb-4">
+                <div class="video-tile">
+                    <h6 class="text-secondary">Original</h6>
+                    <video class="preview-player" controls preload="metadata">
+                        <source src="{{ url_for('main.stream_original_video', activity_id=activity.id) }}" type="video/mp4">
+                        Your browser does not support inline playback.
+                    </video>
+                </div>
+                <div class="video-tile">
+                    <h6 class="text-secondary">Dubbed</h6>
+                    <video class="preview-player" controls preload="metadata">
+                        <source src="{{ url_for('main.stream_video', activity_id=activity.id) }}" type="video/mp4">
+                        Your browser does not support inline playback.
+                    </video>
+                </div>
+            </div>
+            <h5>Transcription</h5>
+            <p class="text-secondary">{{ activity.transcript }}</p>
+            <h5 class="mt-4">Translation</h5>
+            <p class="text-secondary">{{ activity.translated_text }}</p>
+            <div class="mt-3">
+                <a class="btn btn-success" href="{{ url_for('main.download', activity_id=activity.id) }}">
+                    <i class="bi bi-download"></i> Download dubbed video
+                </a>
+                <a class="btn btn-primary ms-2" href="{{ url_for('main.evaluate_activity', activity_id=activity.id) }}">
+                    <i class="bi bi-graph-up"></i> Evaluate Quality
+                </a>
+            </div>
+        </div>
+    </div>
+{% elif activity.status == "failed" %}
+    <div class="alert alert-danger">
+        <strong>Processing failed.</strong> {{ activity.error_message }}
+    </div>
+{% else %}
+    <div class="alert alert-info">
+        Your video is still being processed. Refresh the dashboard for updates.
+    </div>
+{% endif %}
+{% endblock %}
+

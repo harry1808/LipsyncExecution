@@ -1,0 +1,74 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual Environment
+lipsyncenv/
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Output files
+instance/outputs/
+instance/uploads/
+test_output/
+*.mp4
+*.avi
+*.wav
+*.mp3
+
+# Model files and checkpoints (too large for git)
+*.pth
+*.pt
+*.ckpt
+*.h5
+*.pb
+instance/wav2lip_assets/wav2lip_gan.pth
+LatentSync/checkpoints/
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+instance/wav2lip_assets/eBack/api/pipeline/wav2lip/temp/
+instance/wav2lip_assets/eBack/api/pipeline/wav2lip/temp/*
+
+# Environment variables
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# FFmpeg binaries (if you want to exclude them)
+# ffmpeg/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Large data files
+*.zip
+*.tar.gz
+*.rar
+

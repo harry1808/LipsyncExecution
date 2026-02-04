@@ -1,0 +1,250 @@
+Collecting TTS
+  Using cached TTS-0.22.0.tar.gz (1.7 MB)
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Getting requirements to build wheel: started
+  Getting requirements to build wheel: finished with status 'done'
+  Preparing metadata (pyproject.toml): started
+  Preparing metadata (pyproject.toml): finished with status 'done'
+Requirement already satisfied: soundfile>=0.12.0 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from TTS) (0.13.1)
+Collecting gruut[de,es,fr]==2.2.3
+  Using cached gruut-2.2.3.tar.gz (73 kB)
+  Preparing metadata (setup.py): started
+  Preparing metadata (setup.py): finished with status 'done'
+Requirement already satisfied: pyyaml>=6.0 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from TTS) (6.0.3)
+Collecting numpy==1.22.0
+  Using cached numpy-1.22.0-cp310-cp310-win_amd64.whl (14.7 MB)
+Collecting pypinyin
+  Using cached pypinyin-0.55.0-py2.py3-none-any.whl (840 kB)
+Requirement already satisfied: scikit-learn>=1.3.0 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from TTS) (1.7.2)
+Collecting bnnumerizer
+  Using cached bnnumerizer-0.0.2.tar.gz (4.7 kB)
+  Preparing metadata (setup.py): started
+  Preparing metadata (setup.py): finished with status 'done'
+Collecting jieba
+  Using cached jieba-0.42.1.tar.gz (19.2 MB)
+  Preparing metadata (setup.py): started
+  Preparing metadata (setup.py): finished with status 'done'
+Collecting anyascii>=0.3.0
+  Using cached anyascii-0.3.3-py3-none-any.whl (345 kB)
+Requirement already satisfied: tqdm>=4.64.1 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from TTS) (4.67.1)
+Requirement already satisfied: torch>=2.1 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from TTS) (2.1.0)
+Collecting inflect>=5.6.0
+  Using cached inflect-7.5.0-py3-none-any.whl (35 kB)
+Collecting nltk
+  Using cached nltk-3.9.2-py3-none-any.whl (1.5 MB)
+Requirement already satisfied: transformers>=4.33.0 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from TTS) (4.46.1)
+Collecting encodec>=0.1.1
+  Using cached encodec-0.1.1.tar.gz (3.7 MB)
+  Preparing metadata (setup.py): started
+  Preparing metadata (setup.py): finished with status 'done'
+Requirement already satisfied: packaging>=23.1 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from TTS) (25.0)
+Collecting pandas<2.0,>=1.4
+  Using cached pandas-1.5.3-cp310-cp310-win_amd64.whl (10.4 MB)
+Collecting jamo
+  Using cached jamo-0.4.1-py3-none-any.whl (9.5 kB)
+Collecting g2pkk>=0.1.1
+  Using cached g2pkk-0.1.2-py3-none-any.whl (25 kB)
+Collecting trainer>=0.0.32
+  Using cached trainer-0.0.36-py3-none-any.whl (51 kB)
+Requirement already satisfied: torchaudio in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from TTS) (2.1.0+cpu)
+Collecting cython>=0.29.30
+  Using cached cython-3.2.4-cp310-cp310-win_amd64.whl (2.8 MB)
+Requirement already satisfied: numba>=0.57.0 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from TTS) (0.62.1)
+Collecting coqpit>=0.0.16
+  Using cached coqpit-0.0.17-py3-none-any.whl (13 kB)
+Requirement already satisfied: einops>=0.6.0 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from TTS) (0.8.1)
+Requirement already satisfied: matplotlib>=3.7.0 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from TTS) (3.10.7)
+Collecting unidecode>=1.3.2
+  Using cached Unidecode-1.4.0-py3-none-any.whl (235 kB)
+Requirement already satisfied: spacy[ja]>=3 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from TTS) (3.8.11)
+Requirement already satisfied: scipy>=1.11.2 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from TTS) (1.15.3)
+Collecting pysbd>=0.3.4
+  Using cached pysbd-0.3.4-py3-none-any.whl (71 kB)
+Collecting umap-learn>=0.5.1
+  Using cached umap_learn-0.5.11-py3-none-any.whl (90 kB)
+Requirement already satisfied: fsspec>=2023.6.0 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from TTS) (2025.12.0)
+Collecting hangul_romanize
+  Using cached hangul_romanize-0.1.0-py3-none-any.whl (4.6 kB)
+Collecting num2words
+  Using cached num2words-0.5.14-py3-none-any.whl (163 kB)
+Requirement already satisfied: librosa>=0.10.0 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from TTS) (0.11.0)
+Collecting bnunicodenormalizer
+  Using cached bnunicodenormalizer-0.1.7-py3-none-any.whl (23 kB)
+Collecting aiohttp>=3.8.1
+  Using cached aiohttp-3.13.3-cp310-cp310-win_amd64.whl (456 kB)
+Collecting bangla
+  Using cached bangla-0.0.5-py3-none-any.whl (5.1 kB)
+Requirement already satisfied: flask>=2.0.1 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from TTS) (3.1.2)
+Collecting Babel<3.0.0,>=2.8.0
+  Using cached babel-2.18.0-py3-none-any.whl (10.2 MB)
+Collecting dateparser~=1.1.0
+  Using cached dateparser-1.1.8-py2.py3-none-any.whl (293 kB)
+Collecting gruut-ipa<1.0,>=0.12.0
+  Using cached gruut-ipa-0.13.0.tar.gz (101 kB)
+  Preparing metadata (setup.py): started
+  Preparing metadata (setup.py): finished with status 'done'
+Collecting gruut_lang_en~=2.0.0
+  Using cached gruut_lang_en-2.0.1.tar.gz (15.3 MB)
+  Preparing metadata (setup.py): started
+  Preparing metadata (setup.py): finished with status 'done'
+Collecting jsonlines~=1.2.0
+  Using cached jsonlines-1.2.0-py2.py3-none-any.whl (7.6 kB)
+Collecting networkx<3.0.0,>=2.5.0
+  Using cached networkx-2.8.8-py3-none-any.whl (2.0 MB)
+Collecting python-crfsuite~=0.9.7
+  Using cached python_crfsuite-0.9.12-cp310-cp310-win_amd64.whl (302 kB)
+Collecting gruut_lang_de~=2.0.0
+  Using cached gruut_lang_de-2.0.1.tar.gz (18.1 MB)
+  Preparing metadata (setup.py): started
+  Preparing metadata (setup.py): finished with status 'done'
+Collecting gruut_lang_fr~=2.0.0
+  Using cached gruut_lang_fr-2.0.2.tar.gz (10.9 MB)
+  Preparing metadata (setup.py): started
+  Preparing metadata (setup.py): finished with status 'done'
+Collecting gruut_lang_es~=2.0.0
+  Using cached gruut_lang_es-2.0.1.tar.gz (31.4 MB)
+  Preparing metadata (setup.py): started
+  Preparing metadata (setup.py): finished with status 'done'
+Collecting aiosignal>=1.4.0
+  Using cached aiosignal-1.4.0-py3-none-any.whl (7.5 kB)
+Collecting async-timeout<6.0,>=4.0
+  Using cached async_timeout-5.0.1-py3-none-any.whl (6.2 kB)
+Collecting propcache>=0.2.0
+  Using cached propcache-0.4.1-cp310-cp310-win_amd64.whl (41 kB)
+Collecting aiohappyeyeballs>=2.5.0
+  Using cached aiohappyeyeballs-2.6.1-py3-none-any.whl (15 kB)
+Requirement already satisfied: attrs>=17.3.0 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from aiohttp>=3.8.1->TTS) (25.4.0)
+Collecting yarl<2.0,>=1.17.0
+  Using cached yarl-1.22.0-cp310-cp310-win_amd64.whl (86 kB)
+Collecting multidict<7.0,>=4.5
+  Using cached multidict-6.7.1-cp310-cp310-win_amd64.whl (46 kB)
+Collecting frozenlist>=1.1.1
+  Using cached frozenlist-1.8.0-cp310-cp310-win_amd64.whl (43 kB)
+Requirement already satisfied: click>=8.1.3 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from flask>=2.0.1->TTS) (8.1.8)
+Requirement already satisfied: jinja2>=3.1.2 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from flask>=2.0.1->TTS) (3.1.6)
+Requirement already satisfied: markupsafe>=2.1.1 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from flask>=2.0.1->TTS) (3.0.3)
+Requirement already satisfied: werkzeug>=3.1.0 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from flask>=2.0.1->TTS) (3.1.4)
+Requirement already satisfied: itsdangerous>=2.2.0 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from flask>=2.0.1->TTS) (2.2.0)
+Requirement already satisfied: blinker>=1.9.0 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from flask>=2.0.1->TTS) (1.9.0)
+Requirement already satisfied: more_itertools>=8.5.0 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from inflect>=5.6.0->TTS) (10.8.0)
+Collecting typeguard>=4.0.1
+  Using cached typeguard-4.4.4-py3-none-any.whl (34 kB)
+Requirement already satisfied: decorator>=4.3.0 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from librosa>=0.10.0->TTS) (4.4.2)
+Collecting librosa>=0.10.0
+  Using cached librosa-0.10.2.post1-py3-none-any.whl (260 kB)
+Requirement already satisfied: soxr>=0.3.2 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from librosa>=0.10.0->TTS) (1.0.0)
+Requirement already satisfied: joblib>=0.14 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from librosa>=0.10.0->TTS) (1.5.2)
+Requirement already satisfied: pooch>=1.1 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from librosa>=0.10.0->TTS) (1.8.2)
+Requirement already satisfied: typing-extensions>=4.1.1 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from librosa>=0.10.0->TTS) (4.15.0)
+Requirement already satisfied: msgpack>=1.0 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from librosa>=0.10.0->TTS) (1.1.2)
+  Using cached librosa-0.10.2-py3-none-any.whl (260 kB)
+  Using cached librosa-0.10.1-py3-none-any.whl (253 kB)
+  Using cached librosa-0.10.0.post2-py3-none-any.whl (253 kB)
+  Using cached librosa-0.10.0.post1-py3-none-any.whl (252 kB)
+  Using cached librosa-0.10.0-py3-none-any.whl (252 kB)
+Requirement already satisfied: lazy-loader>=0.1 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from librosa>=0.10.0->TTS) (0.4)
+Requirement already satisfied: audioread>=2.1.9 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from librosa>=0.10.0->TTS) (3.1.0)
+Requirement already satisfied: python-dateutil>=2.7 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from matplotlib>=3.7.0->TTS) (2.9.0.post0)
+Requirement already satisfied: pillow>=8 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from matplotlib>=3.7.0->TTS) (11.3.0)
+Requirement already satisfied: contourpy>=1.0.1 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from matplotlib>=3.7.0->TTS) (1.3.2)
+Collecting matplotlib>=3.7.0
+  Using cached matplotlib-3.10.8-cp310-cp310-win_amd64.whl (8.1 MB)
+  Using cached matplotlib-3.10.6-cp310-cp310-win_amd64.whl (8.1 MB)
+Requirement already satisfied: pyparsing>=2.3.1 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from matplotlib>=3.7.0->TTS) (3.2.5)
+  Using cached matplotlib-3.10.5-cp310-cp310-win_amd64.whl (8.1 MB)
+  Using cached matplotlib-3.10.3-cp310-cp310-win_amd64.whl (8.1 MB)
+  Using cached matplotlib-3.10.1-cp310-cp310-win_amd64.whl (8.1 MB)
+  Using cached matplotlib-3.10.0-cp310-cp310-win_amd64.whl (8.0 MB)
+  Using cached matplotlib-3.9.4-cp310-cp310-win_amd64.whl (7.8 MB)
+  Using cached matplotlib-3.9.3-cp310-cp310-win_amd64.whl (7.8 MB)
+  Using cached matplotlib-3.9.2-cp310-cp310-win_amd64.whl (7.8 MB)
+  Using cached matplotlib-3.9.1.post1-cp310-cp310-win_amd64.whl (8.0 MB)
+  Using cached matplotlib-3.9.0-cp310-cp310-win_amd64.whl (8.0 MB)
+  Using cached matplotlib-3.8.4-cp310-cp310-win_amd64.whl (7.7 MB)
+Requirement already satisfied: kiwisolver>=1.3.1 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from matplotlib>=3.7.0->TTS) (1.4.9)
+Requirement already satisfied: fonttools>=4.22.0 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from matplotlib>=3.7.0->TTS) (4.61.0)
+Requirement already satisfied: cycler>=0.10 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from matplotlib>=3.7.0->TTS) (0.12.1)
+Collecting docopt>=0.6.2
+  Using cached docopt-0.6.2.tar.gz (25 kB)
+  Preparing metadata (setup.py): started
+  Preparing metadata (setup.py): finished with status 'done'
+Requirement already satisfied: llvmlite<0.46,>=0.45.0dev0 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from numba>=0.57.0->TTS) (0.45.1)
+Requirement already satisfied: pytz>=2020.1 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from pandas<2.0,>=1.4->TTS) (2025.2)
+Requirement already satisfied: threadpoolctl>=3.1.0 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from scikit-learn>=1.3.0->TTS) (3.6.0)
+Collecting scipy>=1.11.2
+  Using cached scipy-1.15.2-cp310-cp310-win_amd64.whl (41.2 MB)
+  Using cached scipy-1.15.1-cp310-cp310-win_amd64.whl (43.9 MB)
+  Using cached scipy-1.15.0-cp310-cp310-win_amd64.whl (43.9 MB)
+  Using cached scipy-1.14.1-cp310-cp310-win_amd64.whl (44.8 MB)
+  Using cached scipy-1.14.0-cp310-cp310-win_amd64.whl (44.8 MB)
+  Using cached scipy-1.13.1-cp310-cp310-win_amd64.whl (46.2 MB)
+  Using cached scipy-1.13.0-cp310-cp310-win_amd64.whl (46.2 MB)
+  Using cached scipy-1.12.0-cp310-cp310-win_amd64.whl (46.2 MB)
+  Using cached scipy-1.11.4-cp310-cp310-win_amd64.whl (44.1 MB)
+Requirement already satisfied: cffi>=1.0 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from soundfile>=0.12.0->TTS) (2.0.0)
+Requirement already satisfied: weasel<0.5.0,>=0.4.2 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from spacy[ja]>=3->TTS) (0.4.3)
+Requirement already satisfied: setuptools in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from spacy[ja]>=3->TTS) (65.5.0)
+Requirement already satisfied: wasabi<1.2.0,>=0.9.1 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from spacy[ja]>=3->TTS) (1.1.3)
+Requirement already satisfied: requests<3.0.0,>=2.13.0 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from spacy[ja]>=3->TTS) (2.32.5)
+Requirement already satisfied: preshed<3.1.0,>=3.0.2 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from spacy[ja]>=3->TTS) (3.0.12)
+Requirement already satisfied: catalogue<2.1.0,>=2.0.6 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from spacy[ja]>=3->TTS) (2.0.10)
+Requirement already satisfied: spacy-loggers<2.0.0,>=1.0.0 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from spacy[ja]>=3->TTS) (1.0.5)
+Requirement already satisfied: cymem<2.1.0,>=2.0.2 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from spacy[ja]>=3->TTS) (2.0.13)
+Requirement already satisfied: murmurhash<1.1.0,>=0.28.0 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from spacy[ja]>=3->TTS) (1.0.15)
+Requirement already satisfied: thinc<8.4.0,>=8.3.4 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from spacy[ja]>=3->TTS) (8.3.10)
+Requirement already satisfied: srsly<3.0.0,>=2.4.3 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from spacy[ja]>=3->TTS) (2.5.2)
+Requirement already satisfied: pydantic!=1.8,!=1.8.1,<3.0.0,>=1.7.4 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from spacy[ja]>=3->TTS) (2.12.5)
+Requirement already satisfied: spacy-legacy<3.1.0,>=3.0.11 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from spacy[ja]>=3->TTS) (3.0.12)
+Requirement already satisfied: typer-slim<1.0.0,>=0.3.0 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from spacy[ja]>=3->TTS) (0.20.0)
+Collecting sudachidict_core>=20211220
+  Using cached sudachidict_core-20260116-py3-none-any.whl (72.2 MB)
+Collecting sudachipy!=0.6.1,>=0.5.2
+  Using cached SudachiPy-0.6.10-cp310-cp310-win_amd64.whl (1.4 MB)
+Requirement already satisfied: sympy in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from torch>=2.1->TTS) (1.14.0)
+Requirement already satisfied: filelock in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from torch>=2.1->TTS) (3.20.0)
+Requirement already satisfied: colorama in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from tqdm>=4.64.1->TTS) (0.4.6)
+Requirement already satisfied: psutil in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from trainer>=0.0.32->TTS) (7.1.3)
+Requirement already satisfied: tensorboard in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from trainer>=0.0.32->TTS) (2.20.0)
+Requirement already satisfied: regex!=2019.12.17 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from transformers>=4.33.0->TTS) (2025.11.3)
+Requirement already satisfied: huggingface-hub<1.0,>=0.23.2 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from transformers>=4.33.0->TTS) (0.36.0)
+Requirement already satisfied: safetensors>=0.4.1 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from transformers>=4.33.0->TTS) (0.7.0)
+Requirement already satisfied: tokenizers<0.21,>=0.20 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from transformers>=4.33.0->TTS) (0.20.3)
+Collecting pynndescent>=0.5
+  Using cached pynndescent-0.6.0-py3-none-any.whl (73 kB)
+Collecting umap-learn>=0.5.1
+  Using cached umap_learn-0.5.9.post2-py3-none-any.whl (90 kB)
+  Using cached umap_learn-0.5.8-py3-none-any.whl (89 kB)
+  Using cached umap_learn-0.5.7-py3-none-any.whl (88 kB)
+Requirement already satisfied: pycparser in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from cffi>=1.0->soundfile>=0.12.0->TTS) (2.23)
+Collecting contourpy>=1.0.1
+  Using cached contourpy-1.3.1-cp310-cp310-win_amd64.whl (218 kB)
+  Using cached contourpy-1.3.0-cp310-cp310-win_amd64.whl (216 kB)
+  Using cached contourpy-1.2.1-cp310-cp310-win_amd64.whl (187 kB)
+Collecting tzlocal
+  Using cached tzlocal-5.3.1-py3-none-any.whl (18 kB)
+Requirement already satisfied: six in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from jsonlines~=1.2.0->gruut[de,es,fr]==2.2.3->TTS) (1.17.0)
+Requirement already satisfied: platformdirs>=2.5.0 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from pooch>=1.1->librosa>=0.10.0->TTS) (4.5.1)
+Requirement already satisfied: typing-inspection>=0.4.2 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from pydantic!=1.8,!=1.8.1,<3.0.0,>=1.7.4->spacy[ja]>=3->TTS) (0.4.2)
+Requirement already satisfied: pydantic-core==2.41.5 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from pydantic!=1.8,!=1.8.1,<3.0.0,>=1.7.4->spacy[ja]>=3->TTS) (2.41.5)
+Requirement already satisfied: annotated-types>=0.6.0 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from pydantic!=1.8,!=1.8.1,<3.0.0,>=1.7.4->spacy[ja]>=3->TTS) (0.7.0)
+Requirement already satisfied: urllib3<3,>=1.21.1 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from requests<3.0.0,>=2.13.0->spacy[ja]>=3->TTS) (2.5.0)
+Requirement already satisfied: certifi>=2017.4.17 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from requests<3.0.0,>=2.13.0->spacy[ja]>=3->TTS) (2025.11.12)
+Requirement already satisfied: idna<4,>=2.5 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from requests<3.0.0,>=2.13.0->spacy[ja]>=3->TTS) (3.11)
+Requirement already satisfied: charset_normalizer<4,>=2 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from requests<3.0.0,>=2.13.0->spacy[ja]>=3->TTS) (3.4.4)
+Requirement already satisfied: blis<1.4.0,>=1.3.0 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from thinc<8.4.0,>=8.3.4->spacy[ja]>=3->TTS) (1.3.3)
+Requirement already satisfied: confection<1.0.0,>=0.0.1 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from thinc<8.4.0,>=8.3.4->spacy[ja]>=3->TTS) (0.1.5)
+Requirement already satisfied: cloudpathlib<1.0.0,>=0.7.0 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from weasel<0.5.0,>=0.4.2->spacy[ja]>=3->TTS) (0.23.0)
+Requirement already satisfied: smart-open<8.0.0,>=5.2.1 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from weasel<0.5.0,>=0.4.2->spacy[ja]>=3->TTS) (7.5.0)
+Requirement already satisfied: mpmath<1.4,>=1.1.0 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from sympy->torch>=2.1->TTS) (1.3.0)
+Requirement already satisfied: tensorboard-data-server<0.8.0,>=0.7.0 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from tensorboard->trainer>=0.0.32->TTS) (0.7.2)
+Requirement already satisfied: grpcio>=1.48.2 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from tensorboard->trainer>=0.0.32->TTS) (1.76.0)
+Requirement already satisfied: absl-py>=0.4 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from tensorboard->trainer>=0.0.32->TTS) (2.3.1)
+Requirement already satisfied: protobuf!=4.24.0,>=3.19.6 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from tensorboard->trainer>=0.0.32->TTS) (4.25.8)
+Requirement already satisfied: markdown>=2.6.8 in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from tensorboard->trainer>=0.0.32->TTS) (3.10)
+Requirement already satisfied: wrapt in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from smart-open<8.0.0,>=5.2.1->weasel<0.5.0,>=0.4.2->spacy[ja]>=3->TTS) (2.0.1)
+Requirement already satisfied: tzdata in c:\users\murf-ai\desktop\lipsyncexecution\lipsyncenv\lib\site-packages (from tzlocal->dateparser~=1.1.0->gruut[de,es,fr]==2.2.3->TTS) (2025.2)
+Building wheels for collected packages: TTS
+  Building wheel for TTS (pyproject.toml): started
+  Building wheel for TTS (pyproject.toml): finished with status 'error'
+Failed to build TTS

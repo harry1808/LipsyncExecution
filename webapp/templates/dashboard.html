@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+{% block title %}Workspace · VidDub Studio{% endblock %}
+{% block content %}
+<div class="workspace-shell">
+<h2 class="mb-4">Welcome back, {{ current_user.username }} 👋</h2>
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card glass-panel" id="upload">
+            <div class="card-body">
+                <h4 class="card-title mb-3">Start a new dubbing session</h4>
+                <form method="post" enctype="multipart/form-data" class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label">Video file (MP4, MOV, AVI)</label>
+                        <input type="file" class="form-control" name="video_file" accept=".mp4,.mov,.avi" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Source language</label>
+                        <select class="form-select" name="source_lang" required>
+                            {% for lang in languages %}
+                                <option value="{{ lang.code }}" {% if lang.code == 'en' %}selected{% endif %}>
+                                    {{ lang.label }} ({{ lang.code|upper }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Target language</label>
+                        <select class="form-select" name="dest_lang" required>
+                            {% for lang in languages %}
+                                <option value="{{ lang.code }}" {% if lang.code == 'fr' %}selected{% endif %}>
+                                    {{ lang.label }} ({{ lang.code|upper }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Voice</label>
+                        <select class="form-select" name="voice" required>
+                            {% for voice in voice_choices %}
+                                <option value="{{ voice }}" {% if voice == 'female' %}selected{% endif %}>
+                                    {{ voice|capitalize }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="enable_lipsync" id="enable_lipsync"
+                                   {% if lipsync_default %}checked{% endif %} onchange="toggleLipsyncOptions()">
+                            <label class="form-check-label" for="enable_lipsync">
+                                Enable lip-sync (adds extra processing time)
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Lip-sync info -->
+                    <div class="col-12" id="lipsync_options" style="display: {% if lipsync_default %}block{% else %}none{% endif %};">
+                        <div class="alert alert-info py-2 mb-0">
+                            <small>
+                                <strong>Wav2Lip</strong> will sync lip movements to the translated audio.
+                                Requires 4GB+ GPU VRAM for optimal performance.
+                            </small>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <button class="btn btn-primary btn-lg w-100" type="submit">Process video</button>
+                        <p class="text-muted small mt-2 mb-0">Processing happens on this server – keep the tab open until we finish.</p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5 d-flex flex-column gap-4">
+        <div class="card glass-panel flex-fill workflow-card">
+            <div class="card-body d-flex flex-column">
+                <h4 class="mb-3">Workflow</h4>
+                <ul class="list-unstyled step-list flex-grow-1">
+                    <li>1. Extract audio with FFmpeg + MoviePy</li>
+                    <li>2. Transcribe with Whisper</li>
+                    <li>3. Translate via NLLB</li>
+                    <li>4. Regenerate speech using Indic Parler-TTS</li>
+                    <li>5. Merge and export 🎬</li>
+                </ul>
+                <div class="mt-3">
+                    <p class="text-secondary mb-1">Need help?</p>
+                    <a href="mailto:support@example.com" class="btn btn-outline-light w-100">Contact support</a>
+                </div>
+            </div>
+        </div>
+        <div class="card glass-panel">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">Languages we speak</h5>
+                    <span class="badge bg-gradient">{{ languages|length }}</span>
+                </div>
+                <div class="language-cloud">
+                    {% for lang in languages %}
+                        <span class="pill">{{ lang.label }} ({{ lang.code|upper }})</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="mt-5" id="activities">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0">Latest activity</h4>
+        <a class="link-light text-decoration-none" href="{{ url_for('main.dashboard') }}">Refresh ↻</a>
+    </div>
+    {% if activities %}
+        <div class="row g-3">
+            {% for activity in activities %}
+                <div class="col-12">
+                    <div class="card glass-panel">
+                        <div class="card-body row align-items-center">
+                            <div class="col-md-3">
+                                <p class="fw-semibold mb-1">{{ activity.filename }}</p>
+                                <span class="badge rounded-pill status-{{ activity.status }}">{{ activity.status|capitalize }}</span>
+                            </div>
+                            <div class="col-md-4 text-secondary small">
+                                <p class="mb-1">Source → Target: {{ activity.source_lang }} → {{ activity.dest_lang }}</p>
+                                <p class="mb-0">{{ activity.created_at.strftime("%b %d, %Y %H:%M") }}</p>
+                            </div>
+                            <div class="col-md-5 text-md-end mt-3 mt-md-0 d-flex flex-wrap justify-content-md-end gap-2">
+                                <a class="btn btn-outline-light" href="{{ url_for('main.activity_detail', activity_id=activity.id) }}">Details</a>
+                                {% if activity.status == "completed" %}
+                                    <a class="btn btn-success" href="{{ url_for('main.download', activity_id=activity.id) }}">Download</a>
+                                    <a class="btn btn-primary" href="{{ url_for('main.stream_video', activity_id=activity.id) }}" target="_blank">Watch dub</a>
+                                    <a class="btn btn-secondary" href="{{ url_for('main.stream_original_video', activity_id=activity.id) }}" target="_blank">Watch original</a>
+                                {% else %}
+                                    <button class="btn btn-secondary" disabled>Processing</button>
+                                {% endif %}
+                                <form method="post" class="d-inline" action="{{ url_for('main.delete_activity', activity_id=activity.id) }}" onsubmit="return confirm('Delete this activity and its files?');">
+                                    <button class="btn btn-outline-danger">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state text-center py-5">
+            <p class="lead mb-0 text-secondary">No activity yet. Upload your first video to see logs here.</p>
+        </div>
+    {% endif %}
+</section>
+</div>
+
+<script>
+function toggleLipsyncOptions() {
+    const checkbox = document.getElementById('enable_lipsync');
+    const options = document.getElementById('lipsync_options');
+    options.style.display = checkbox.checked ? 'block' : 'none';
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    toggleLipsyncOptions();
+});
+</script>
+{% endblock %}
+

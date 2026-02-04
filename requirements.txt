@@ -1,0 +1,44 @@
+# Core Dependencies
+moviepy
+openai-whisper 
+torch
+transformers
+sentencepiece>=0.2.0
+accelerate
+huggingface-hub
+numpy
+opencv-python
+face-alignment
+scikit-image
+ffmpeg-python
+librosa
+resampy
+torchvision
+numba
+requests
+Flask
+Flask-Login
+Flask-SQLAlchemy
+protobuf>=4.0.0,<5.0.0
+
+# eBack Pipeline Dependencies (https://github.com/LipSync-Edusync/eBack)
+pydub  # For audio manipulation and silence detection
+# Note: Face detection uses OpenCV Haar Cascade (no mediapipe - protobuf conflict)
+
+# LatentSync Dependencies (https://github.com/bytedance/LatentSync)
+# Note: LatentSync provides higher quality lip-sync but requires more VRAM (8GB+)
+diffusers==0.32.2  # Pinned: newer versions have torch.xpu compatibility issues
+omegaconf>=2.3.0
+einops>=0.7.0
+decord>=0.6.0
+mediapipe>=0.10.11  # Required by LatentSync for face detection
+python_speech_features>=0.6
+scenedetect>=0.6.1
+imageio>=2.31.1
+imageio-ffmpeg>=0.5.1
+lpips>=0.1.4
+kornia>=0.8.0
+# insightface: Pin to 0.2.1 which has pre-built wheels for Windows (no C++ build tools needed)
+insightface==0.2.1
+onnxruntime-gpu  # Use 'onnxruntime' instead if no GPU
+DeepCache>=0.1.1  # Optional: speeds up diffusion inference

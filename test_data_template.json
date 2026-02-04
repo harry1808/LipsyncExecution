@@ -1,0 +1,118 @@
+{
+  "description": "Test data template for dubbing system evaluation",
+  "version": "1.0",
+  "test_cases": [
+    {
+      "id": "test_001",
+      "name": "English to Hindi - Short Greeting",
+      "video_path": "path/to/your/video1.mp4",
+      "source_lang": "en",
+      "dest_lang": "hi",
+      "duration": 5.2,
+      "ground_truth": {
+        "transcript": "Hello everyone, welcome to this tutorial on machine learning",
+        "translation": "नमस्ते सभी को, मशीन लर्निंग पर इस ट्यूटोरियल में आपका स्वागत है"
+      },
+      "metadata": {
+        "speaker": "male",
+        "audio_quality": "high",
+        "background_noise": "low",
+        "domain": "education"
+      }
+    },
+    {
+      "id": "test_002",
+      "name": "English to Tamil - Technical Content",
+      "video_path": "path/to/your/video2.mp4",
+      "source_lang": "en",
+      "dest_lang": "ta",
+      "duration": 12.8,
+      "ground_truth": {
+        "transcript": "In this video we will learn about neural networks and deep learning algorithms",
+        "translation": "இந்த வீடியோவில் நாம் நரம்பியல் நெட்வொர்க்குகள் மற்றும் ஆழ்ந்த கற்றல் அல்காரிதம்களைப் பற்றி அறிவோம்"
+      },
+      "metadata": {
+        "speaker": "female",
+        "audio_quality": "medium",
+        "background_noise": "medium",
+        "domain": "technology"
+      }
+    },
+    {
+      "id": "test_003",
+      "name": "Hindi to English - News Report",
+      "video_path": "path/to/your/video3.mp4",
+      "source_lang": "hi",
+      "dest_lang": "en",
+      "duration": 8.5,
+      "ground_truth": {
+        "transcript": "आज के समाचार में हम देश की ताज़ा घटनाओं पर चर्चा करेंगे",
+        "translation": "In today's news we will discuss the latest events in the country"
+      },
+      "metadata": {
+        "speaker": "male",
+        "audio_quality": "high",
+        "background_noise": "low",
+        "domain": "news"
+      }
+    },
+    {
+      "id": "test_004",
+      "name": "English to Bengali - Conversation",
+      "video_path": "path/to/your/video4.mp4",
+      "source_lang": "en",
+      "dest_lang": "bn",
+      "duration": 15.3,
+      "ground_truth": {
+        "transcript": "How are you doing today? I hope you are having a great day and learning something new",
+        "translation": "আজ আপনি কেমন আছেন? আমি আশা করি আপনার দিনটি ভালো যাচ্ছে এবং আপনি নতুন কিছু শিখছেন"
+      },
+      "metadata": {
+        "speaker": "female",
+        "audio_quality": "high",
+        "background_noise": "low",
+        "domain": "casual"
+      }
+    },
+    {
+      "id": "test_005",
+      "name": "English to Telugu - Educational",
+      "video_path": "path/to/your/video5.mp4",
+      "source_lang": "en",
+      "dest_lang": "te",
+      "duration": 20.1,
+      "ground_truth": {
+        "transcript": "Welcome to our comprehensive course on artificial intelligence and its applications in modern technology",
+        "translation": "ఆర్టిఫిషియల్ ఇంటెలిజెన్స్ మరియు ఆధునిక సాంకేతికతలో దాని అనువర్తనాలపై మా సమగ్ర కోర్సుకు స్వాగతం"
+      },
+      "metadata": {
+        "speaker": "male",
+        "audio_quality": "high",
+        "background_noise": "low",
+        "domain": "education"
+      }
+    }
+  ],
+  "evaluation_config": {
+    "output_dir": "./evaluation_results",
+    "enable_lipsync": false,
+    "voice_preference": "female",
+    "generate_html_report": true,
+    "save_intermediate_files": true
+  },
+  "instructions": {
+    "step_1": "Replace 'video_path' with actual paths to your test videos",
+    "step_2": "Update 'transcript' with what is ACTUALLY said in the video (ground truth)",
+    "step_3": "Update 'translation' with the EXPECTED translation (reference)",
+    "step_4": "Run: python run_evaluation.py --config test_data_template.json",
+    "step_5": "View results in HTML report and JSON files"
+  },
+  "notes": [
+    "Ground truth transcripts should be manually verified for accuracy",
+    "Translation ground truth can be from human translators or verified MT",
+    "Include diverse test cases: different speakers, noise levels, domains",
+    "Minimum 10-20 test cases recommended for robust evaluation",
+    "Balance test cases across different language pairs"
+  ]
+}
+

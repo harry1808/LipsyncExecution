@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block title %}Evaluation - Video Dubbing System{% endblock %}
+
+{% block content %}
+<style>
+    /* Fix visibility in dark mode */
+    .card-body {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+    .card-body p, .card-body ul, .card-body li {
+        color: #000000 !important;
+    }
+    .table {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+    .table th, .table td {
+        color: #000000 !important;
+    }
+    .table tbody tr:hover {
+        background-color: #f8f9fa !important;
+    }
+</style>
+<div class="container mt-5">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-4">📊 Evaluation Center</h1>
+            <p class="lead">Evaluate your dubbed videos to measure quality metrics</p>
+        </div>
+    </div>
+
+    <!-- Important Warning Banner -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-warning border-warning">
+                <h5 class="alert-heading">
+                    <i class="bi bi-exclamation-triangle-fill"></i> Important: Ground Truth Best Practices
+                </h5>
+                <p class="mb-2">
+                    <strong>⚠️ Using Google Translate directly will give artificially LOW scores!</strong>
+                </p>
+                <p class="mb-2">
+                    Our evaluation uses <strong>BLEU score</strong>, which measures exact word/phrase matching.
+                    Even semantically correct translations get low scores if they use different phrasing.
+                </p>
+                <div class="mb-2">
+                    <strong>✅ Best Practice:</strong>
+                    <ol class="mb-0 mt-2">
+                        <li>Use the <strong>"Evaluation Helper"</strong> button when evaluating</li>
+                        <li>Start with your <strong>system's own translation</strong></li>
+                        <li>Manually verify and correct only actual errors</li>
+                        <li>Use the corrected version as ground truth</li>
+                    </ol>
+                </div>
+                <hr>
+                <p class="mb-0">
+                    <a href="EVALUATION_GROUND_TRUTH_GUIDE.md" class="alert-link" target="_blank">
+                        <i class="bi bi-book"></i> Read the complete Ground Truth Guide
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    {% if activities %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">✓ Completed Activities Available for Evaluation</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Filename</th>
+                                    <th>Languages</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for activity in activities %}
+                                <tr>
+                                    <td>
+                                        <i class="bi bi-file-earmark-play"></i>
+                                        {{ activity.filename }}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ activity.source_lang }}</span>
+                                        <i class="bi bi-arrow-right"></i>
+                                        <span class="badge bg-info">{{ activity.dest_lang }}</span>
+                                    </td>
+                                    <td>{{ activity.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td>
+                                        <span class="badge bg-success">{{ activity.status }}</span>
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('main.evaluate_activity', activity_id=activity.id) }}" 
+                                           class="btn btn-sm btn-primary">
+                                            <i class="bi bi-graph-up"></i> Evaluate
+                                        </a>
+                                        <a href="{{ url_for('main.activity_detail', activity_id=activity.id) }}" 
+                                           class="btn btn-sm btn-outline-secondary">
+                                            <i class="bi bi-eye"></i> View
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="row">
+        <div class="col-12">
+            <div class="alert alert-info text-center" role="alert">
+                <i class="bi bi-info-circle" style="font-size: 2rem;"></i>
+                <h4 class="mt-3">No Completed Activities Yet</h4>
+                <p>Process some videos first to evaluate their quality.</p>
+                <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary mt-2">
+                    <i class="bi bi-upload"></i> Go to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Info Section -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card border-info">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">ℹ️ About Evaluation</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>What gets evaluated:</strong></p>
+                    <ul>
+                        <li><strong>WER (Word Error Rate):</strong> Measures speech recognition accuracy</li>
+                        <li><strong>BLEU Score:</strong> Measures translation quality</li>
+                        <li><strong>CER (Character Error Rate):</strong> Character-level accuracy</li>
+                        <li><strong>Composite Score:</strong> Overall quality rating (0-100)</li>
+                    </ul>
+                    
+                    <p class="mt-3"><strong>You will need:</strong></p>
+                    <ul>
+                        <li>Ground truth transcript (what was actually said in the original)</li>
+                        <li>Ground truth translation (expected translation in target language)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

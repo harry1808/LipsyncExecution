@@ -1,0 +1,53 @@
+# Virtual environment
+lipsyncenv/
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+streamlit.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# Model weights (download at runtime or mount as volume)
+# Uncomment these if you want to include models in image:
+# LatentSync/checkpoints/
+# instance/wav2lip_assets/
+
+# Test/documentation files (not needed in production)
+*.md
+*.pptx
+test_*.py
+example_*.py
+*_test.py
+
+# Instance data (should be mounted as volumes)
+instance/uploads/*
+instance/outputs/*
+
+# Keep only empty directories
+!instance/uploads/.gitkeep
+!instance/outputs/.gitkeep
+
+
+
+
+
+
+
+
