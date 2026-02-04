@@ -60,8 +60,10 @@ instance/wav2lip_assets/eBack/api/pipeline/wav2lip/temp/*
 Thumbs.db
 desktop.ini
 
-# FFmpeg binaries (if you want to exclude them)
-# ffmpeg/
+# FFmpeg binaries (too large for GitHub - over 100MB each)
+ffmpeg/bin/
+ffmpeg/doc/
+ffmpeg/presets/
 
 # Jupyter
 .ipynb_checkpoints/
