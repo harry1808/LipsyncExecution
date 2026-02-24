@@ -381,50 +381,153 @@ def calculate_duration_metrics(ref_duration: float, syn_duration: float) -> Dict
 
 
 # ============================================================================
+# 3b. LIP-SYNC EVALUATION METRICS
+# ============================================================================
+#
+# Standard metrics used in lip-sync evaluation (e.g. Wav2Lip, SyncNet):
+#
+# - LSE-D (Lip-Sync Error - Distance): Mean distance between audio and visual
+#   embeddings over time. Lower is better. Computed with SyncNet.
+# - LSE-C (Lip-Sync Error - Confidence): Discriminator confidence that the
+#   audio-visual pair is in sync. Higher is better. Computed with SyncNet.
+# - AV offset: Temporal offset (frames or ms) between audio and mouth movement.
+#   Closer to 0 is better.
+# - Duration consistency: Video duration vs audio duration; for good lip-sync
+#   they should match (no extra silence or truncation).
+# ============================================================================
+
+def calculate_lipsync_duration_consistency(
+    video_duration: float, audio_duration: float
+) -> Dict:
+    """
+    Duration consistency for lip-sync: video and audio lengths should match.
+    
+    Used when SyncNet is not available. Good lip-sync requires similar
+    video and audio durations (no long stretches of silence or cut-off speech).
+    
+    Args:
+        video_duration: Video duration in seconds
+        audio_duration: Audio duration in seconds
+    
+    Returns:
+        Dictionary with duration_ratio, difference_sec, error_percent,
+        and consistency_score (0-100, higher = better match).
+    """
+    if video_duration <= 0:
+        return {
+            'video_duration': video_duration,
+            'audio_duration': audio_duration,
+            'difference_sec': abs(audio_duration - video_duration),
+            'duration_ratio': 0.0,
+            'error_percent': 100.0,
+            'consistency_score': 0.0,
+        }
+    diff = abs(video_duration - audio_duration)
+    ratio = audio_duration / video_duration
+    error_percent = (diff / video_duration) * 100
+    # Score: 100 when perfect match, 0 when error >= 20%
+    consistency_score = max(0.0, 100.0 - error_percent * 2.5)
+    consistency_score = min(100.0, consistency_score)
+    return {
+        'video_duration': video_duration,
+        'audio_duration': audio_duration,
+        'difference_sec': diff,
+        'duration_ratio': ratio,
+        'error_percent': error_percent,
+        'consistency_score': consistency_score,
+    }
+
+
+def lipsync_score_from_syncnet_metrics(
+    lse_d: float, lse_c: float, av_offset_frames: int, fps: float = 25.0
+) -> float:
+    """
+    Convert SyncNet-based metrics to a single 0-100 lip-sync quality score.
+    
+    Heuristics (tuned for typical SyncNet output):
+    - LSE-D: lower is better; typical good range < 0.5.
+    - LSE-C: higher is better; typical good range > 0.5.
+    - AV offset: 0 frames is best; penalize |offset| (at 25 fps, 5 frames = 200 ms).
+    
+    Args:
+        lse_d: Lip-Sync Error - Distance (lower is better)
+        lse_c: Lip-Sync Error - Confidence (higher is better)
+        av_offset_frames: Audio-visual offset in frames (0 is best)
+        fps: Frames per second for offset conversion
+    
+    Returns:
+        Score 0-100 (higher = better lip-sync).
+    """
+    # Normalize LSE-D: assume 0 = perfect, 1.0+ = poor
+    d_score = max(0, 100 - lse_d * 100) if lse_d is not None else 50.0
+    # LSE-C: higher is better; scale 0..1 -> 0..100
+    c_score = (lse_c * 100) if lse_c is not None else 50.0
+    # Offset: 0 frames = 100, ±10 frames = 0
+    offset_penalty = min(100, abs(av_offset_frames) * 10) if av_offset_frames is not None else 0
+    offset_score = max(0, 100 - offset_penalty)
+    # Equal weight
+    return (d_score + c_score + offset_score) / 3.0
+
+
+# ============================================================================
 # 4. OVERALL QUALITY SCORES
 # ============================================================================
 
-def calculate_composite_score(metrics: Dict) -> float:
+def calculate_composite_score(metrics: Dict, include_lipsync: bool = True) -> float:
     """
     Calculate composite quality score from multiple metrics.
     
     Weighted average:
-        Score = w1×(1-WER) + w2×BLEU + w3×(1-CER) + w4×AudioQuality
+        Score = w1×(1-WER) + w2×BLEU + w3×(1-CER) + w4×timing [+ w5×lipsync]
     
     Args:
         metrics: Dictionary containing evaluation metrics
+        include_lipsync: If True and lipsync_score is present, include it in the score
     
     Returns:
         Composite score (0-100)
     """
-    weights = {
-        'transcription': 0.25,  # WER
-        'translation': 0.30,     # BLEU
-        'synthesis': 0.25,       # Audio quality
-        'timing': 0.20           # Duration accuracy
+    # Weights sum to 1.0; lipsync gets 0.15 when present, others scaled down slightly
+    base_weights = {
+        'transcription': 0.22,
+        'translation': 0.28,
+        'synthesis': 0.22,
+        'timing': 0.18,
     }
+    lipsync_weight = 0.15
+    if include_lipsync and metrics.get('lipsync_score') is not None:
+        total_base = sum(base_weights.values())
+        scale = (1.0 - lipsync_weight) / total_base
+        weights = {k: v * scale for k, v in base_weights.items()}
+        weights['lipsync'] = lipsync_weight
+    else:
+        weights = base_weights
     
     score = 0.0
     
     # Transcription quality (inverse of WER)
     if 'wer' in metrics:
         transcription_score = max(0, 100 - metrics['wer'])
-        score += weights['transcription'] * transcription_score
+        score += weights.get('transcription', 0) * transcription_score
     
     # Translation quality (BLEU)
     if 'bleu_score' in metrics:
         translation_score = metrics['bleu_score'] * 100
-        score += weights['translation'] * translation_score
+        score += weights.get('translation', 0) * translation_score
     
     # Audio synthesis (inverse of CER)
     if 'cer' in metrics:
         synthesis_score = max(0, 100 - metrics['cer'])
-        score += weights['synthesis'] * synthesis_score
+        score += weights.get('synthesis', 0) * synthesis_score
     
     # Timing accuracy
     if 'duration_error_percent' in metrics:
         timing_score = max(0, 100 - metrics['duration_error_percent'])
-        score += weights['timing'] * timing_score
+        score += weights.get('timing', 0) * timing_score
+    
+    # Lip-sync quality (LSE-C, LSE-D, AV offset → single score)
+    if weights.get('lipsync') and 'lipsync_score' in metrics:
+        score += weights['lipsync'] * metrics['lipsync_score']
     
     return score
 
@@ -533,6 +636,24 @@ def format_metrics_report(metrics: Dict, title: str = "Evaluation Results") -> s
         report.append("TIMING ACCURACY:")
         report.append(f"  Duration Error:    {metrics['duration_error_percent']:.2f}%")
         report.append(f"  Duration Ratio:    {metrics.get('duration_ratio', 1):.3f}")
+        report.append("")
+    
+    # Lip-sync metrics
+    if 'lse_d' in metrics or 'lipsync_score' in metrics:
+        report.append("LIP-SYNC QUALITY:")
+        if 'lse_d' in metrics:
+            report.append(f"  LSE-D (lower=better):  {metrics.get('lse_d', 0):.4f}")
+        if 'lse_c' in metrics:
+            report.append(f"  LSE-C (higher=better): {metrics.get('lse_c', 0):.4f}")
+        if 'av_offset_frames' in metrics:
+            report.append(f"  AV offset (frames):     {metrics.get('av_offset_frames', 0)}")
+        if 'av_offset_ms' in metrics:
+            report.append(f"  AV offset (ms):        {metrics.get('av_offset_ms', 0):.0f}")
+        if 'lipsync_duration_consistency' in metrics:
+            dc = metrics['lipsync_duration_consistency']
+            report.append(f"  Duration consistency:   {dc.get('consistency_score', 0):.1f}/100")
+        if 'lipsync_score' in metrics:
+            report.append(f"  Lip-sync score:         {metrics['lipsync_score']:.1f}/100")
         report.append("")
     
     # Composite score

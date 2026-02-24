@@ -15,8 +15,7 @@ services:
       - ./instance/uploads:/app/instance/uploads
       - ./instance/outputs:/app/instance/outputs
       - ./instance/app.db:/app/instance/app.db
-      # Persist model checkpoints (large files, don't re-download)
-      - ./LatentSync/checkpoints:/app/LatentSync/checkpoints
+      # Persist Wav2Lip/eBack assets (checkpoints, eBack repo)
       - ./instance/wav2lip_assets:/app/instance/wav2lip_assets
     environment:
       - FLASK_SECRET_KEY=${FLASK_SECRET_KEY:-your-secret-key-here}

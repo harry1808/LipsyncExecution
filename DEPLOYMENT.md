@@ -7,7 +7,7 @@ This guide covers all deployment options for your AI Video Dubbing application.
 ## 📋 Requirements
 
 Your application needs:
-- **GPU**: NVIDIA GPU with 8GB+ VRAM (for LatentSync)
+- **GPU**: NVIDIA GPU with 4GB+ VRAM (for Wav2Lip lip-sync)
 - **CUDA**: Version 12.1 or compatible
 - **RAM**: 16GB+ recommended
 - **Storage**: 20GB+ for models and dependencies
@@ -52,7 +52,6 @@ docker run -d \
   --gpus all \
   -p 5000:5000 \
   -v ./instance:/app/instance \
-  -v ./LatentSync/checkpoints:/app/LatentSync/checkpoints \
   --shm-size=8g \
   -e FLASK_SECRET_KEY=your-secret-key \
   --name video-dubbing \
@@ -188,21 +187,7 @@ hardware: t4-small
 
 ## 🔮 Option 4: Replicate (Using Cog)
 
-Your project already has `LatentSync/cog.yaml`! You can deploy the lip-sync component separately.
-
-1. **Install Cog**:
-```bash
-# Linux/Mac
-curl -o /usr/local/bin/cog -L https://github.com/replicate/cog/releases/latest/download/cog_$(uname -s)_$(uname -m)
-chmod +x /usr/local/bin/cog
-```
-
-2. **Push to Replicate**:
-```bash
-cd LatentSync
-cog login
-cog push r8.im/your-username/latentsync
-```
+Optional: You can containerize the app with Cog and push to Replicate. Lip-sync uses Wav2Lip/eBack only.
 
 ---
 

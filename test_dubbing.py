@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 def main():
     # Configuration
-    INPUT_VIDEO = project_root / "LatentSync" / "assets" / "demo1_video.mp4"
+    INPUT_VIDEO = project_root / "sample_video.mp4"
     OUTPUT_DIR = project_root / "test_output"
     WAV2LIP_ASSETS_DIR = project_root / "instance" / "wav2lip_assets"
     
@@ -36,10 +36,10 @@ def main():
     # Check if input video exists
     if not INPUT_VIDEO.exists():
         logger.error(f"Input video not found: {INPUT_VIDEO}")
-        logger.info("Available sample videos:")
-        assets_dir = project_root / "LatentSync" / "assets"
-        if assets_dir.exists():
-            for f in assets_dir.glob("*.mp4"):
+        logger.info("Place a video file at sample_video.mp4 or set INPUT_VIDEO in this script.")
+        test_data = project_root / "test_data"
+        if test_data.exists():
+            for f in test_data.glob("*.mp4"):
                 logger.info(f"  - {f}")
         return 1
     

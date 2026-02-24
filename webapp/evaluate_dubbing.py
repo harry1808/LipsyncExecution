@@ -23,6 +23,7 @@ from .evaluation_metrics import (
     calculate_composite_score,
     format_metrics_report
 )
+from . import lipsync_metrics
 
 
 class DubbingEvaluator:
@@ -256,7 +257,8 @@ class DubbingEvaluator:
         ground_truth: Dict,
         output_dir: str = "./evaluation_output",
         voice: str = "female",
-        enable_lipsync: bool = False
+        enable_lipsync: bool = False,
+        lipsync_assets_dir: Optional[str] = None,
     ) -> Dict:
         """
         Evaluate complete dubbing pipeline end-to-end.
@@ -275,6 +277,7 @@ class DubbingEvaluator:
             output_dir: Directory for output files
             voice: Voice gender ('male' or 'female')
             enable_lipsync: Whether to apply lip-sync
+            lipsync_assets_dir: Wav2Lip/eBack assets dir (for lip-sync and for SyncNet eval metrics)
         
         Returns:
             Comprehensive evaluation results
@@ -304,7 +307,8 @@ class DubbingEvaluator:
             results['original_duration'] = original_duration
             
             # Run full dubbing pipeline
-            self.logger.info("\n[1/3] Running dubbing pipeline...")
+            steps = 4 if enable_lipsync else 3
+            self.logger.info(f"\n[1/{steps}] Running dubbing pipeline...")
             dubbed_video_path, transcript, translation = process_video(
                 video_path=video_path,
                 source_lang=source_lang,
@@ -312,7 +316,8 @@ class DubbingEvaluator:
                 output_dir=str(output_dir),
                 logger=self.logger,
                 voice=voice,
-                enable_lipsync=enable_lipsync
+                enable_lipsync=enable_lipsync,
+                lipsync_assets_dir=lipsync_assets_dir,
             )
             
             results['dubbed_video_path'] = str(dubbed_video_path)
@@ -320,7 +325,7 @@ class DubbingEvaluator:
             results['generated_translation'] = translation
             
             # Evaluate Speech Recognition
-            self.logger.info("\n[2/3] Evaluating Speech Recognition...")
+            self.logger.info(f"\n[2/{steps}] Evaluating Speech Recognition...")
             if 'transcript' in ground_truth:
                 wer_metrics = calculate_wer(
                     ground_truth['transcript'], 
@@ -341,7 +346,7 @@ class DubbingEvaluator:
                 self.logger.info(f"  WER: {wer_metrics['wer']:.2f}%")
             
             # Evaluate Translation
-            self.logger.info("\n[3/3] Evaluating Translation...")
+            self.logger.info(f"\n[3/{steps}] Evaluating Translation...")
             if 'translation' in ground_truth:
                 bleu_metrics = calculate_bleu(
                     translation,
@@ -371,13 +376,36 @@ class DubbingEvaluator:
             
             results['components']['duration'] = duration_metrics
             
-            # Calculate composite score
+            # Lip-sync evaluation (when lip-sync was applied; uses same Wav2Lip/eBack assets)
+            if enable_lipsync:
+                self.logger.info("\n[4/4] Evaluating Lip-Sync...")
+                try:
+                    lipsync_result = lipsync_metrics.evaluate_lipsync(
+                        video_path=str(dubbed_video_path),
+                        run_syncnet=True,
+                        wav2lip_assets_dir=lipsync_assets_dir,
+                        logger=self.logger,
+                    )
+                    results['components']['lipsync'] = lipsync_result
+                    if lipsync_result.get('lipsync_score') is not None:
+                        self.logger.info(f"  Lip-sync score: {lipsync_result['lipsync_score']:.1f}/100")
+                    if lipsync_result.get('lse_d') is not None:
+                        self.logger.info(f"  LSE-D: {lipsync_result['lse_d']:.4f}, LSE-C: {lipsync_result['lse_c']:.4f}")
+                except Exception as e:
+                    self.logger.warning(f"Lip-sync evaluation failed (non-fatal): {e}")
+                    results['components']['lipsync'] = {'status': 'error', 'error': str(e)}
+            else:
+                self.logger.info("\n[4/4] Lip-sync was disabled; skipping lip-sync metrics.")
+            
+            # Calculate composite score (includes lip-sync when available)
             composite_metrics = {
                 'wer': results['components'].get('asr', {}).get('wer', 0),
                 'bleu_score': results['components'].get('translation', {}).get('bleu_score', 0),
                 'duration_error_percent': duration_metrics.get('error_percent', 0)
             }
-            
+            lipsync_score = results['components'].get('lipsync', {}).get('lipsync_score')
+            if lipsync_score is not None:
+                composite_metrics['lipsync_score'] = lipsync_score
             composite_score = calculate_composite_score(composite_metrics)
             results['composite_score'] = composite_score
             
@@ -450,7 +478,8 @@ class DubbingEvaluator:
                 ground_truth=test_case['ground_truth'],
                 output_dir=str(output_dir / f"test_{idx}"),
                 voice=test_case.get('voice', 'female'),
-                enable_lipsync=test_case.get('enable_lipsync', False)
+                enable_lipsync=test_case.get('enable_lipsync', False),
+                lipsync_assets_dir=test_case.get('lipsync_assets_dir'),
             )
             
             batch_results['individual_results'].append(result)
@@ -490,6 +519,7 @@ class DubbingEvaluator:
         bleu_scores = []
         composite_scores = []
         duration_errors = []
+        lipsync_scores = []
         
         for result in successful_results:
             if 'components' in result:
@@ -499,6 +529,10 @@ class DubbingEvaluator:
                     bleu_scores.append(result['components']['translation']['bleu_score'])
                 if 'duration' in result['components']:
                     duration_errors.append(result['components']['duration']['error_percent'])
+                if 'lipsync' in result['components']:
+                    ls = result['components']['lipsync'].get('lipsync_score')
+                    if ls is not None:
+                        lipsync_scores.append(ls)
             if 'composite_score' in result:
                 composite_scores.append(result['composite_score'])
         
@@ -526,6 +560,14 @@ class DubbingEvaluator:
                 'std': np.std(composite_scores),
                 'min': np.min(composite_scores),
                 'max': np.max(composite_scores)
+            }
+        
+        if lipsync_scores:
+            aggregate['lipsync_score'] = {
+                'mean': np.mean(lipsync_scores),
+                'std': np.std(lipsync_scores),
+                'min': np.min(lipsync_scores),
+                'max': np.max(lipsync_scores)
             }
         
         return aggregate
@@ -590,6 +632,24 @@ class DubbingEvaluator:
                 report_lines.append(f"    Dubbed Duration:         {dur['syn_duration']:.2f}s")
                 report_lines.append(f"    Difference:              {dur['difference']:.2f}s")
                 report_lines.append(f"    Error Percentage:        {dur['error_percent']:.2f}%")
+            
+            # Lip-Sync Results
+            if 'lipsync' in results.get('components', {}):
+                ls = results['components']['lipsync']
+                report_lines.append("\n[4] Lip-Sync Quality:")
+                if ls.get('lipsync_duration_consistency'):
+                    dc = ls['lipsync_duration_consistency']
+                    report_lines.append(f"    Duration consistency:     {dc.get('consistency_score', 0):.1f}/100")
+                if ls.get('lse_d') is not None:
+                    report_lines.append(f"    LSE-D (lower=better):     {ls['lse_d']:.4f}")
+                if ls.get('lse_c') is not None:
+                    report_lines.append(f"    LSE-C (higher=better):    {ls['lse_c']:.4f}")
+                if ls.get('av_offset_frames') is not None:
+                    report_lines.append(f"    AV offset:                {ls['av_offset_frames']} frames ({ls.get('av_offset_ms', 0):.0f} ms)")
+                if ls.get('lipsync_score') is not None:
+                    report_lines.append(f"    Lip-sync score:           {ls['lipsync_score']:.1f}/100")
+                if ls.get('lipsync_eval_status') and ls.get('lipsync_eval_status') not in ('success', None):
+                    report_lines.append(f"    SyncNet eval status:      {ls['lipsync_eval_status']}")
             
             # Overall Score
             report_lines.append(f"\n{'─'*70}")

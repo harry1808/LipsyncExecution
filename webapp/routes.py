@@ -21,8 +21,9 @@ from . import db
 from .dubbing import process_video
 from .language_support import SUPPORTED_LANGS
 from .models import Activity
-from .evaluation_metrics import calculate_bleu, calculate_wer, calculate_cer
+from .evaluation_metrics import calculate_bleu, calculate_wer, calculate_cer, calculate_composite_score
 from .evaluate_dubbing import DubbingEvaluator
+from . import lipsync_metrics
 
 main_bp = Blueprint("main", __name__)
 VOICE_CHOICES = ("female", "male")
@@ -337,12 +338,31 @@ def evaluate_activity(activity_id):
                     'hypothesis': activity.translated_text
                 }
             
-            # Calculate composite score
-            composite_score = 0.0
+            # Lip-sync evaluation (when output video exists; uses Wav2Lip SyncNet when assets available)
+            lipsync_result = None
+            output_folder = Path(current_app.config["OUTPUT_FOLDER"])
+            if activity.output_filename:
+                output_video_path = output_folder / activity.output_filename
+                if output_video_path.exists():
+                    try:
+                        lipsync_result = lipsync_metrics.evaluate_lipsync(
+                            video_path=str(output_video_path),
+                            run_syncnet=True,
+                            wav2lip_assets_dir=current_app.config.get("WAV2LIP_ASSETS_DIR"),
+                            logger=current_app.logger,
+                        )
+                    except Exception as e:
+                        current_app.logger.warning("Lip-sync evaluation failed (non-fatal): %s", e)
+            
+            # Build composite metrics and calculate overall score (same formula as pipeline evaluator)
+            composite_metrics = {}
             if asr_metrics:
-                composite_score += 0.4 * (100 - asr_metrics['wer'])
+                composite_metrics["wer"] = asr_metrics["wer"]
             if translation_metrics:
-                composite_score += 0.6 * (translation_metrics['bleu_score'] * 100)
+                composite_metrics["bleu_score"] = translation_metrics["bleu_score"]
+            if lipsync_result and lipsync_result.get("lipsync_score") is not None:
+                composite_metrics["lipsync_score"] = lipsync_result["lipsync_score"]
+            composite_score = calculate_composite_score(composite_metrics)
             
             # Determine rating
             if composite_score >= 90:
@@ -364,6 +384,7 @@ def evaluate_activity(activity_id):
             results = {
                 'asr': asr_metrics,
                 'translation': translation_metrics,
+                'lipsync': lipsync_result,
                 'composite_score': composite_score,
                 'rating': rating,
                 'stars': stars

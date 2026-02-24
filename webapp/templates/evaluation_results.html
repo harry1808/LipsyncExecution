@@ -285,6 +285,78 @@
             </div>
         </div>
         {% endif %}
+
+        <!-- Lip-Sync Quality -->
+        {% if results.lipsync and (results.lipsync.lipsync_duration_consistency or results.lipsync.lipsync_score is not none) %}
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100 border-success">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-camera-video"></i> Lip-Sync Quality</h5>
+                </div>
+                <div class="card-body">
+                    {% if results.lipsync.lipsync_score is not none %}
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <strong>Lip-Sync Score</strong>
+                            <span class="badge 
+                                {% if results.lipsync.lipsync_score >= 80 %}bg-success
+                                {% elif results.lipsync.lipsync_score >= 60 %}bg-primary
+                                {% elif results.lipsync.lipsync_score >= 40 %}bg-warning
+                                {% else %}bg-danger
+                                {% endif %}
+                                fs-6">
+                                {{ "%.1f"|format(results.lipsync.lipsync_score) }}/100
+                            </span>
+                        </div>
+                        <div class="progress" style="height: 25px;">
+                            <div class="progress-bar 
+                                {% if results.lipsync.lipsync_score >= 80 %}bg-success
+                                {% elif results.lipsync.lipsync_score >= 60 %}bg-primary
+                                {% elif results.lipsync.lipsync_score >= 40 %}bg-warning
+                                {% else %}bg-danger
+                                {% endif %}"
+                                role="progressbar" 
+                                style="width: {{ results.lipsync.lipsync_score }}%">
+                            </div>
+                        </div>
+                        <small class="text-muted">Higher is better (audio–visual sync)</small>
+                    </div>
+                    {% endif %}
+                    {% if results.lipsync.lipsync_duration_consistency %}
+                    <div class="mb-3">
+                        <strong>Duration consistency</strong>
+                        <span class="badge bg-secondary ms-2">{{ "%.1f"|format(results.lipsync.lipsync_duration_consistency.consistency_score) }}/100</span>
+                        <small class="d-block text-muted">Video vs audio length match</small>
+                    </div>
+                    {% endif %}
+                    {% if results.lipsync.lse_d is not none %}
+                    <div class="mb-2">
+                        <strong>LSE-D</strong> <span class="badge bg-secondary">{{ "%.4f"|format(results.lipsync.lse_d) }}</span>
+                        <small class="text-muted">Lower is better</small>
+                    </div>
+                    {% endif %}
+                    {% if results.lipsync.lse_c is not none %}
+                    <div class="mb-2">
+                        <strong>LSE-C</strong> <span class="badge bg-secondary">{{ "%.4f"|format(results.lipsync.lse_c) }}</span>
+                        <small class="text-muted">Higher is better</small>
+                    </div>
+                    {% endif %}
+                    {% if results.lipsync.av_offset_frames is not none %}
+                    <div class="mb-2">
+                        <strong>AV offset</strong> <span class="badge bg-secondary">{{ results.lipsync.av_offset_frames }} frames</span>
+                        {% if results.lipsync.av_offset_ms is not none %}
+                        <span class="text-muted">({{ "%.0f"|format(results.lipsync.av_offset_ms) }} ms)</span>
+                        {% endif %}
+                        <small class="d-block text-muted">0 = best sync</small>
+                    </div>
+                    {% endif %}
+                    {% if results.lipsync.lipsync_eval_status and results.lipsync.lipsync_eval_status != 'success' %}
+                    <p class="small text-muted mb-0">SyncNet: {{ results.lipsync.lipsync_eval_status }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
     </div>
 
     <!-- Interpretation Guide -->
@@ -321,6 +393,14 @@
                                 <li>75-89: <span class="badge bg-primary">Good</span></li>
                                 <li>60-74: <span class="badge bg-info">Fair</span></li>
                                 <li>&lt; 60: <span class="badge bg-warning">Needs Work</span></li>
+                            </ul>
+                        </div>
+                        <div class="col-md-4 mt-2 mt-md-0">
+                            <h6><strong>Lip-Sync (LSE-D / LSE-C)</strong></h6>
+                            <ul class="small">
+                                <li>LSE-D: lower is better (&lt; 0.5 good)</li>
+                                <li>LSE-C: higher is better (&gt; 0.5 good)</li>
+                                <li>AV offset: 0 frames = best</li>
                             </ul>
                         </div>
                     </div>
