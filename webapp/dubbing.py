@@ -90,8 +90,6 @@ def _resize_video_to_sd(input_path, output_path, logger=None):
 NLLB_MODEL_NAME = os.environ.get("NLLB_MODEL_NAME", "facebook/nllb-200-distilled-600M")
 NLLB_LANGUAGE_CODES = {
     "en": "eng_Latn",
-    "fr": "fra_Latn",
-    "es": "spa_Latn",
     "hi": "hin_Deva",
     "bn": "ben_Beng",
     "te": "tel_Telu",
@@ -102,6 +100,17 @@ NLLB_LANGUAGE_CODES = {
     "gu": "guj_Gujr",
     "pa": "pan_Guru",
     "ur": "urd_Arab",
+    "as": "asm_Beng",
+    "brx": "brx_Deva",
+    "doi": "doi_Deva",
+    "kok": "kok_Deva",
+    "mai": "mai_Deva",
+    "mni": "mni_Beng",
+    "ne": "npi_Deva",
+    "or": "ory_Orya",
+    "sa": "san_Deva",
+    "sat": "sat_Beng",
+    "sd": "snd_Arab",
 }
 
 
@@ -141,7 +150,7 @@ def _load_nllb_model():
 
 
 
-# Indic Parler-TTS language mapping
+# Indic Parler-TTS language mapping (all support both TTS and lip-sync)
 # Maps language codes to Indic Parler-TTS supported language names
 INDIC_PARLER_LANGUAGES = {
     "en": "English",
@@ -154,14 +163,18 @@ INDIC_PARLER_LANGUAGES = {
     "mr": "Marathi",
     "gu": "Gujarati",
     "ur": "Urdu",
+    "pa": "Punjabi",
     "as": "Assamese",
     "or": "Odia",
-    "pa": "Punjabi",  # Unofficial support
     "ne": "Nepali",
     "sa": "Sanskrit",
-    "fr": "English",  # Fallback to English for non-Indic languages
-    "es": "English",  # Fallback to English for non-Indic languages
-    # Add more mappings as needed
+    "brx": "Bodo",
+    "doi": "Dogri",
+    "kok": "Konkani",
+    "mai": "Maithili",
+    "mni": "Manipuri",
+    "sat": "Santali",
+    "sd": "Sindhi",
 }
 
 # Voice descriptions for Indic Parler-TTS

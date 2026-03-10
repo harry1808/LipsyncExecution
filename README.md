@@ -180,7 +180,7 @@ In the **web app**, use **Evaluation** for a completed activity: enter ground-tr
 
 ## Supported Languages
 
-The UI supports a subset of languages (e.g. English, French, Spanish, Hindi, Bengali, Telugu, Tamil, Malayalam, Kannada, Marathi, Gujarati, Punjabi, Urdu). Translation uses NLLB; TTS uses Indic Parler-TTS (see `INDIC_PARLER_TTS_INTEGRATION.md` and `webapp/language_support.py` for the full list and codes).
+The UI supports all Indic languages that have both TTS and lip-sync: **English**, **Hindi**, **Bengali**, **Telugu**, **Tamil**, **Malayalam**, **Kannada**, **Marathi**, **Gujarati**, **Punjabi**, **Urdu**, **Assamese**, **Bodo**, **Dogri**, **Konkani**, **Maithili**, **Manipuri**, **Nepali**, **Odia**, **Sanskrit**, **Santali**, and **Sindhi**. Translation uses NLLB; TTS uses Indic Parler-TTS (see `INDIC_PARLER_TTS_INTEGRATION.md` and `webapp/language_support.py` for the full list and codes).
 
 ---
 

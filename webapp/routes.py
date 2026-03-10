@@ -65,7 +65,7 @@ def dashboard():
 def _handle_video_submission():
     file = request.files.get("video_file")
     source_lang = request.form.get("source_lang", "en").lower()
-    dest_lang = request.form.get("dest_lang", "fr").lower()
+    dest_lang = request.form.get("dest_lang", "hi").lower()
     voice = request.form.get("voice", VOICE_CHOICES[0]).lower()
     enable_lipsync = request.form.get("enable_lipsync") == "on"
 
