@@ -31,9 +31,14 @@ def create_app():
         "https://images.unsplash.com/photo-1484704849700-f032a568e944?auto=format&fit=crop&w=2000&q=80",
     ]
 
+    # Allow override for Docker: use a writable path (e.g. /app/data) to avoid permission issues on mounted instance
+    db_path = os.environ.get("SQLALCHEMY_DATABASE_URI")
+    if not db_path:
+        db_path = f"sqlite:///{instance_path / 'app.db'}"
+
     app.config.from_mapping(
         SECRET_KEY=os.environ.get("FLASK_SECRET_KEY", "replace-me"),
-        SQLALCHEMY_DATABASE_URI=f"sqlite:///{instance_path / 'app.db'}",
+        SQLALCHEMY_DATABASE_URI=db_path,
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
         UPLOAD_FOLDER=str(upload_dir),
         OUTPUT_FOLDER=str(output_dir),

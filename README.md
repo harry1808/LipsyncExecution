@@ -40,11 +40,11 @@ lipsyncExecution/
 │   └── uploads/              # Uploaded source videos
 ├── test_dubbing.py           # Test script (process_video with sample_video.mp4)
 ├── run_test_lipsync.py       # End-to-end test with lip-sync
+├── run_evaluation.py         # CLI evaluation runner
+├── example_evaluation.py     # Evaluation usage examples
 ├── requirements.txt
 ├── env.example               # Copy to .env and configure
-├── DEPLOYMENT.md             # Docker, cloud, and production deployment
-├── INDIC_PARLER_TTS_INTEGRATION.md
-└── QUICK_START_INDIC_TTS.md
+└── test_data_template.json   # Config template for batch evaluation
 ```
 
 ---
@@ -180,7 +180,7 @@ In the **web app**, use **Evaluation** for a completed activity: enter ground-tr
 
 ## Supported Languages
 
-The UI supports all Indic languages that have both TTS and lip-sync: **English**, **Hindi**, **Bengali**, **Telugu**, **Tamil**, **Malayalam**, **Kannada**, **Marathi**, **Gujarati**, **Punjabi**, **Urdu**, **Assamese**, **Bodo**, **Dogri**, **Konkani**, **Maithili**, **Manipuri**, **Nepali**, **Odia**, **Sanskrit**, **Santali**, and **Sindhi**. Translation uses NLLB; TTS uses Indic Parler-TTS (see `INDIC_PARLER_TTS_INTEGRATION.md` and `webapp/language_support.py` for the full list and codes).
+The UI supports all Indic languages that have both TTS and lip-sync: **English**, **Hindi**, **Bengali**, **Telugu**, **Tamil**, **Malayalam**, **Kannada**, **Marathi**, **Gujarati**, **Punjabi**, **Urdu**, **Assamese**, **Bodo**, **Dogri**, **Konkani**, **Maithili**, **Manipuri**, **Nepali**, **Odia**, **Sanskrit**, **Santali**, and **Sindhi**. Translation uses NLLB; TTS uses Indic Parler-TTS (see **Indic Parler-TTS** section below and `webapp/language_support.py` for the full list and codes).
 
 ---
 
@@ -210,7 +210,105 @@ The UI supports all Indic languages that have both TTS and lip-sync: **English**
 - **GPU:** Recommended for Whisper, NLLB, and Wav2Lip; CPU is slower.
 - **FFmpeg:** Required for video/audio handling; ensure it is on PATH or under `ffmpeg/bin/`.
 - **Lip-sync evaluation:** If SyncNet checkpoint is missing, only duration consistency is reported; LSE-D/LSE-C are skipped without failing the app.
-- For deployment (Docker, cloud), see **DEPLOYMENT.md**.
+
+---
+
+## Indic Parler-TTS
+
+Indic Parler-TTS is used for multilingual speech synthesis (21+ Indic languages and English). It is integrated in `webapp/dubbing.py` via `synthesize_tts()`.
+
+**Setup:** Install with `pip install -r requirements.txt` (includes `parler-tts` and `soundfile`). On first use the model (~0.9GB) downloads from Hugging Face; it is then cached.
+
+**Supported languages (official):** Assamese, Bengali, Bodo, Dogri, English, Gujarati, Hindi, Kannada, Konkani, Maithili, Malayalam, Manipuri, Marathi, Nepali, Odia, Sanskrit, Santali, Sindhi, Tamil, Telugu, Urdu. Unofficial: Punjabi (pa), etc.
+
+**Voice options:** `voice="female"` or `voice="male"` in `process_video()` or the web form.
+
+**Troubleshooting:** If the model fails to download, check the internet and visit https://huggingface.co/ai4bharat/indic-parler-tts (accept terms if prompted). For OOM, use CPU: `CUDA_VISIBLE_DEVICES=""`. Unsupported language codes fall back to English; see `INDIC_PARLER_LANGUAGES` in `webapp/dubbing.py`.
+
+---
+
+## Evaluation (Full Guide)
+
+### How to run evaluation
+
+**Web (recommended):** Run `python flask_app.py`, open http://127.0.0.1:5000, log in, click **📊 Evaluation**, choose a completed activity, enter ground-truth transcript and translation, then **Calculate Evaluation Metrics**. Results show composite score, WER, BLEU, CER, and side-by-side comparisons.
+
+**CLI – single video:**
+```bash
+python run_evaluation.py --quick \
+  --video "path/to/video.mp4" \
+  --source-lang en --dest-lang hi \
+  --transcript "What was actually said" \
+  --translation "Expected translation in target language" \
+  --html
+```
+Output: `quick_eval/report.html` and JSON.
+
+**CLI – batch:** Create a config JSON (see `test_data_template.json`) with `test_cases` (each with `video_path`, `source_lang`, `dest_lang`, `ground_truth.transcript`, `ground_truth.translation`), then:
+```bash
+python run_evaluation.py --config my_tests.json --html
+```
+
+**Python API:**
+```python
+from webapp.evaluate_dubbing import DubbingEvaluator
+evaluator = DubbingEvaluator()
+results = evaluator.evaluate_full_pipeline(
+    video_path="test.mp4", source_lang="en", dest_lang="hi",
+    ground_truth={"transcript": "...", "translation": "..."},
+    output_dir="./evaluation_output", enable_lipsync=True,
+    lipsync_assets_dir="./instance/wav2lip_assets",
+)
+print(evaluator.generate_report(results))
+```
+
+### Metrics
+
+- **ASR:** WER (word error rate), CER (character error rate), accuracy. Good: WER < 20%, excellent: < 10%.
+- **Translation:** BLEU (0–1). Good: > 0.7, acceptable: > 0.5.
+- **Duration:** Error % (original vs dubbed length). Excellent: < 5%.
+- **Composite score (0–100):** Weighted combination; 90–100 = Excellent, 75–89 = Good, 60–74 = Fair, 40–59 = Poor, 0–39 = Needs improvement.
+
+Formula (example): `Composite = 0.25×(100-WER) + 0.30×(BLEU×100) + 0.25×(100-CER) + 0.20×(100-DurationError)`.
+
+### Ground truth best practices
+
+**Do not use raw Google Translate as ground truth.** BLEU compares exact n-grams; different phrasing gives low BLEU even when both translations are correct.
+
+**Recommended:** Use your system’s output as the base: run dubbing, copy the system’s transcript/translation, correct only real errors, then use that as ground truth. The web **Evaluation Helper** (“Use Evaluation Helper”) copies system output into the form so you can edit and submit.
+
+**Interpretation:** With system-based ground truth, BLEU 0.9–1.0 = minimal errors, 0.7–0.9 = good, 0.5–0.7 = fair, < 0.5 = significant errors. With Google Translate as reference, 0.3–0.5 may still mean a good translation with different wording.
+
+### Outputs
+
+- **Console:** Real-time report with WER, BLEU, duration, composite score.
+- **JSON:** `evaluation_output/evaluation_results.json` (and batch JSON).
+- **HTML:** `evaluation_output/report.html` or `quick_eval/report.html` with progress bars and comparisons.
+
+### Troubleshooting
+
+- **High WER:** Check audio quality, language code, and Whisper output.
+- **Low BLEU:** Prefer system-based ground truth; avoid raw Google Translate.
+- **Large duration error:** Check TTS and source/target language length mismatch.
+- **Crashes:** Ensure enough GPU memory, reduce batch size, verify dependencies and video integrity.
+
+---
+
+## Project report summary
+
+This project implements an **AI-powered multilingual video dubbing system with optional lip synchronization**. It combines:
+
+- **Whisper** (ASR), **NLLB-200** (translation), **Indic Parler-TTS** (TTS), **Wav2Lip** (lip-sync).
+- A **Flask web app** with auth, upload, processing, and evaluation.
+- **Evaluation:** BLEU, WER, CER, duration metrics, composite quality score (0–100), and optional lip-sync metrics (LSE-D, LSE-C).
+
+Supported: 13+ languages including English, Hindi, Bengali, Telugu, Tamil, Malayalam, Kannada, Marathi, Gujarati, Punjabi, Urdu, and others. Typical results: WER ~8–15%, BLEU ~0.4–0.7, composite ~78–84, MOS ~4.0/5. Pipeline: upload → transcribe → translate → TTS → (optional) lip-sync → download. For full methodology, baselines, and appendices (install, env vars, API examples, troubleshooting), see the project report content previously in `PROJECT_REPORT.md` (now consolidated here).
+
+---
+
+## Wav2Lip training (summary)
+
+Lip-sync uses an audio-driven generator plus a **SyncNet** discriminator. Training uses ~5.6M audio–video pairs from **LRS2** (primary), **LRS3**, and **VoxCeleb2**. Pipeline: 25 FPS frames → RetinaFace face detection → FAN landmarks → 96×96 aligned crop; audio at 16 kHz → 80-dim Mel spectrogram. Improvements over baseline: RetinaFace, FAN alignment, stronger Sync Loss weight, temporal frame jitter, mixed precision (FP16). Metrics: LSE-D (lower = better), LSE-C (higher = better), PSNR/SSIM/LPIPS. This repo uses pre-trained Wav2Lip/eBack checkpoints; see `instance/wav2lip_assets/Wav2Lip` and eBack documentation for training details.
 
 ---
 
