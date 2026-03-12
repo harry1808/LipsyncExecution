@@ -1,0 +1,28 @@
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_SECRET_KEY=${FLASK_SECRET_KEY:-change-me-in-production}
+      - FLASK_ENV=production
+      - SQLALCHEMY_DATABASE_URI=sqlite:////app/data/app.db
+      - NLLB_MODEL_NAME=${NLLB_MODEL_NAME:-facebook/nllb-200-distilled-600M}
+      - LIPSYNC_DEFAULT=${LIPSYNC_DEFAULT:-0}
+    volumes:
+      # Persist database
+      - dbdata:/app/data
+      # Host instance folder: uploads, outputs, and wav2lip_assets (eBack + checkpoint)
+      - ./instance:/app/instance
+    restart: unless-stopped
+    # Optional: enable GPU (uncomment if host has nvidia-container-toolkit)
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+volumes:
+  dbdata:

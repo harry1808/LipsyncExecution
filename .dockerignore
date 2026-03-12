@@ -1,0 +1,45 @@
+# Git and env
+.git
+.gitignore
+.env
+.env.*
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+lipsyncenv
+venv
+env
+ENV
+
+# Instance data (use host mount; don't bake into image)
+instance/outputs
+instance/uploads
+instance/*.db
+instance/app.db
+
+# Docs and dev (optional to keep image smaller)
+*.md
+!README.md
+
+# IDE and OS
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+
+# Large/binary
+*.pth
+*.pt
+*.ckpt
+ffmpeg/bin
+ffmpeg/doc
+ffmpeg/presets
+
+# Test and temp
+test_output
+*.tmp
+*.log
+.ipynb_checkpoints

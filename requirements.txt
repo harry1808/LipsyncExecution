@@ -1,5 +1,5 @@
-# Core Dependencies
-moviepy
+# Core Dependencies (moviepy 2.x removed moviepy.editor; pin to 1.x)
+moviepy>=1.0.3,<2
 openai-whisper 
 torch
 transformers
