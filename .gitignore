@@ -42,7 +42,6 @@ test_output/
 *.h5
 *.pb
 instance/wav2lip_assets/wav2lip_gan.pth
-LatentSync/checkpoints/
 
 # Temporary files
 *.tmp
