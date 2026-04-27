@@ -24,7 +24,7 @@ docker compose version
 ## Step 1: Clone or copy the project
 
 ```bash
-git clone <your-repo-url> lipsyncExecution
+git clone https://github.com/harry1808/LipsyncExecution.git lipsyncExecution
 cd lipsyncExecution
 ```
 

@@ -63,6 +63,12 @@ def dashboard():
 
 
 def _handle_video_submission():
+    """
+    Dashboard POST: validate upload, save file, then run the full dubbing chain.
+
+    Chaining: this handler only invokes dubbing.process_video(); that function
+    orchestrates Whisper -> NLLB -> Parler-TTS -> (optional) eBack Wav2Lip or FFmpeg mux.
+    """
     file = request.files.get("video_file")
     source_lang = request.form.get("source_lang", "en").lower()
     dest_lang = request.form.get("dest_lang", "hi").lower()
@@ -99,7 +105,7 @@ def _handle_video_submission():
     original_storage_name = None
 
     try:
-        # Process video with Wav2Lip lip-sync if enabled
+        # Single call: entire pipeline (ASR / translate / TTS / optional lip-sync / output MP4)
         final_path, transcript, translation = process_video(
             upload_path,
             source_lang,
@@ -110,6 +116,7 @@ def _handle_video_submission():
             enable_lipsync=enable_lipsync or current_app.config.get("LIPSYNC_DEFAULT", False),
             lipsync_assets_dir=current_app.config.get("WAV2LIP_ASSETS_DIR"),
         )
+        # Keep a copy of the source video alongside outputs for download / evaluation context
         suffix = upload_path.suffix or ".mp4"
         original_storage_name = f"original_{uuid4().hex}{suffix}"
         original_storage_path = Path(current_app.config["OUTPUT_FOLDER"]) / original_storage_name

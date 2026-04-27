@@ -373,7 +373,7 @@ def synthesize_tts(text, language_code, voice="female", output_path=None, logger
         
         all_audio_chunks = []
         sampling_rate = model.config.sampling_rate
-        silence_duration = 0.12  # 120ms pause between segments
+        silence_duration = 0.06  # 60ms pause between segments (smoother than 120ms)
         silence_samples = int(sampling_rate * silence_duration)
         
         processed_segments = 0
@@ -565,6 +565,16 @@ def process_video(
 ):
     """
     Dub the supplied video and return final path plus transcripts.
+
+    Pipeline (single orchestrator for the whole stack):
+        1. MoviePy: extract original audio from the video to a temp file.
+        2. Whisper (recognize_speech): audio -> transcript in source_lang.
+        3. NLLB (translate_text): transcript -> translation in dest_lang.
+        4. Indic Parler-TTS (synthesize_tts): translation -> WAV (skipped if audio_path given).
+        5a. If enable_lipsync: eBack Wav2Lip (process_video_with_lipsync) on original video + TTS WAV.
+        5b. Else: align audio/video duration (pad silence or freeze-frame extend), FFmpeg mux -> MP4.
+
+    The Flask dashboard calls this function once per upload; it chains all models and I/O.
     
     Args:
         video_path: Path to input video
@@ -605,6 +615,7 @@ def process_video(
         original_video_clip = None  # Keep reference for cleanup
 
         try:
+            # --- Step 1: video -> audio file (input to ASR) ---
             video_clip = VideoFileClip(str(video_path), target_resolution=None)
             audio_clip = video_clip.audio
             audio_clip.write_audiofile(str(original_audio_path), logger=None)
@@ -612,7 +623,7 @@ def process_video(
                 audio_clip.close()
                 audio_clip = None  # Already closed
             
-            # Generate transcript and translation
+            # --- Step 2: ASR then MT (each output feeds the next) ---
             transcript = recognize_speech(str(original_audio_path), source_lang, logger)
             _log(logger, logging.INFO, f"Transcript length: {len(transcript)} characters")
             _log(logger, logging.INFO, f"Transcript preview: {transcript[:200]}..." if len(transcript) > 200 else f"Transcript: {transcript}")
@@ -645,9 +656,9 @@ def process_video(
                 _log(logger, logging.WARNING, 
                      f"Translation appears unusually long! Word ratio ({word_ratio:.2f}) is very high.")
             
-            # Generate TTS audio if not provided
+            # --- Step 3: translation -> dubbed speech (WAV) ---
             if audio_path is None:
-                # Generate TTS using Indic Parler-TTS
+                # Indic Parler-TTS
                 _log(logger, logging.INFO, f"Generating TTS audio for translation in {dest_lang}...")
                 _log(logger, logging.INFO, f"Full translation text ({len(translation)} chars) will be processed by TTS")
                 tts_audio_path = temp_dir / "tts_audio.wav"
@@ -669,8 +680,8 @@ def process_video(
             output_filename = f"dubbed_{uuid4().hex}.mp4"
             final_path = output_dir / output_filename
 
+            # --- Step 4a: lip-sync branch (original pixels + TTS audio -> Wav2Lip via eBack) ---
             if enable_lipsync:
-                # Use eBack pipeline directly for wav2lip (original working method)
                 from .eback_pipeline import process_video_with_lipsync
                 
                 if not lipsync_assets_dir:
@@ -691,6 +702,7 @@ def process_video(
                 _log(logger, logging.INFO, f"Lip-sync video rendered via Wav2Lip (original resolution preserved).")
                 return final_path, transcript, translation
 
+            # --- Step 4b: dub-only branch (no Wav2Lip): match lengths, then replace audio track ---
             new_audio_clip = AudioFileClip(str(tts_audio_path))
             audio_needs_extension = False
             extended_audio_path = None
@@ -698,42 +710,28 @@ def process_video(
             video_duration = video_clip.duration
             
             if audio_duration < video_duration:
-                # Audio is shorter than video - extend audio by looping to match video duration
-                _log(logger, logging.INFO, 
+                # Audio is shorter than video - pad with silence at the end (avoids repetitive looping)
+                _log(logger, logging.INFO,
                      f"Audio duration ({audio_duration:.2f}s) is shorter than video duration ({video_duration:.2f}s). "
-                     f"Extending audio to match video...")
-                
-                # Use FFmpeg to loop audio efficiently
+                     f"Padding with silence to match video...")
                 from .eback_pipeline.video_utils import get_ffmpeg_path
                 import subprocess
-                
-                ffmpeg_path = get_ffmpeg_path()
                 extended_audio_path = temp_dir / "extended_audio.wav"
-                
-                # Calculate how many times we need to loop (with some buffer)
-                loops_needed = int(np.ceil(video_duration / audio_duration)) + 1
-                
-                # Use FFmpeg to loop the audio and trim to exact video duration
-                loop_cmd = [
-                    ffmpeg_path,
-                    "-y",
-                    "-stream_loop", str(loops_needed),
+                ffmpeg_path = get_ffmpeg_path()
+                pad_cmd = [
+                    ffmpeg_path, "-y",
                     "-i", str(tts_audio_path),
-                    "-t", str(video_duration),  # Trim to exact video duration
-                    "-c:a", "pcm_s16le",  # Use uncompressed PCM for intermediate file
-                    str(extended_audio_path)
+                    "-af", f"apad=whole_dur={video_duration}",
+                    "-c:a", "pcm_s16le",
+                    str(extended_audio_path),
                 ]
-                
-                _log(logger, logging.INFO, f"Looping audio {loops_needed} times using FFmpeg to match video duration")
-                loop_result = subprocess.run(loop_cmd, capture_output=True, text=True)
-                
-                if loop_result.returncode != 0:
-                    error_msg = loop_result.stderr if loop_result.stderr else loop_result.stdout
-                    _log(logger, logging.ERROR, f"FFmpeg audio looping failed: {error_msg}")
-                    raise RuntimeError(f"Failed to loop audio: {error_msg}")
-                
+                pad_result = subprocess.run(pad_cmd, capture_output=True, text=True)
+                if pad_result.returncode != 0:
+                    error_msg = pad_result.stderr or pad_result.stdout
+                    _log(logger, logging.ERROR, f"FFmpeg audio pad failed: {error_msg}")
+                    raise RuntimeError(f"Failed to pad audio: {error_msg}")
                 audio_needs_extension = True
-                _log(logger, logging.INFO, f"Extended audio saved to {extended_audio_path}")
+                _log(logger, logging.INFO, f"Padded audio saved to {extended_audio_path}")
                 
             elif audio_duration > video_duration:
                 # Audio is longer than video - extend video with freeze frame
