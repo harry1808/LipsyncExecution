@@ -68,7 +68,11 @@ def _wav2lip_subprocess_batch_sizes():
     face_env = os.environ.get("WAV2LIP_FACE_DET_BATCH")
     infer_env = os.environ.get("WAV2LIP_INFER_BATCH")
     if face_env and face_env.isdigit() and infer_env and infer_env.isdigit():
-        return face_env.strip(), infer_env.strip()
+        fb, ib = face_env.strip(), infer_env.strip()
+        # Ignore the old ultra-safe 1/4 preset (orders of magnitude slower than historical eBack defaults).
+        if fb == "1" and ib == "4":
+            return "4", "48"
+        return fb, ib
     try:
         import torch
 
@@ -77,16 +81,16 @@ def _wav2lip_subprocess_batch_sizes():
             return "4", "128"
     except Exception:
         pass
-    # CPU: small batches to avoid access violations / OOM on long videos (Windows).
-    return "1", "4"
+    # CPU: default 128 can crash (0xC0000005); 1/4 was far too slow vs historical eBack defaults.
+    # 4/48 matches the old orchestrator face batch and ~1/3 the Wav2Lip steps of batch 128 — good default on CPU.
+    # Lower with WAV2LIP_* env if unstable; raise toward 64/128 if stable and you want more speed.
+    return "4", "48"
 
 
 def _wav2lip_subprocess_env():
     env = os.environ.copy()
-    # Reduce OpenMP/MKL oversubscription on Windows (access violations during long CPU runs).
+    # Avoid duplicate MKL / OpenMP init issues on Windows; do not force single-thread (that made CPU runs very slow).
     if platform.system() == "Windows":
-        env.setdefault("OMP_NUM_THREADS", "1")
-        env.setdefault("MKL_NUM_THREADS", "1")
         env.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
     return env
 
@@ -163,6 +167,19 @@ def _run_wav2lip_full(video_path, audio_path, output_path, assets_dir, logger=No
     abs_output = str(output_path.resolve() if output_path.is_absolute() else output_path.absolute())
 
     face_det_bs, wav2lip_bs = _wav2lip_subprocess_batch_sizes()
+    try:
+        import torch as _torch
+
+        _lip_dev = "CUDA" if _torch.cuda.is_available() else "CPU"
+    except Exception:
+        _lip_dev = "unknown"
+    if logger:
+        logger.info(
+            f"[Wav2Lip] subprocess device≈{_lip_dev} "
+            f"(face_det_batch={face_det_bs}, wav2lip_batch={wav2lip_bs}). "
+            f"CPU-only runs are much slower than GPU; set WAV2LIP_FACE_DET_BATCH and "
+            f"WAV2LIP_INFER_BATCH in .env to tune speed vs stability."
+        )
     command = [
         sys.executable,
         str(inference_script),
