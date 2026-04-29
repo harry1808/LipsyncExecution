@@ -60,7 +60,7 @@ lipsyncExecution/
 See `requirements.txt` for Python dependencies (Whisper, transformers, Parler-TTS, Flask, etc.).
 
 - **Docker deployment:** see [DOCKER_DEPLOYMENT.md](DOCKER_DEPLOYMENT.md) for a step-by-step Docker and Docker Compose guide.
-- **Deploy on another machine (e.g. professor's PC) with remote access:** see [DEPLOY_ON_PROFESSOR_SYSTEM.md](DEPLOY_ON_PROFESSOR_SYSTEM.md) for a step-by-step guide using AnyDesk.
+- **Deploy on another computer (on-site or remote):** see [DEPLOY_REMOTE_SYSTEM.md](DEPLOY_REMOTE_SYSTEM.md).
 
 ---
 

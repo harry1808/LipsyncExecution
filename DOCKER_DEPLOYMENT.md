@@ -1,6 +1,6 @@
 # Deploy LipsyncExecution with Docker
 
-This guide covers **Docker-only** deployment. You need Docker and Docker Compose on the host (your machine or professor's).
+This guide covers **Docker-only** deployment. You need Docker and Docker Compose on the host (your machine or any other).
 
 ---
 

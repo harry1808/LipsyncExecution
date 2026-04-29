@@ -13,7 +13,7 @@ opencv-python
 face-alignment
 scikit-image
 ffmpeg-python
-librosa
+librosa==0.11.0  # pin: matches tested venv; eBack Wav2Lip needs patched audio.py (mel/load) on 0.10+
 resampy
 torchvision
 numba
