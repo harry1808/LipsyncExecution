@@ -14,6 +14,14 @@ login_manager.login_view = "auth.login"
 
 def create_app():
     """Application factory for the Flask UI."""
+    _repo_root = Path(__file__).resolve().parent.parent
+    try:
+        from dotenv import load_dotenv
+
+        load_dotenv(_repo_root / ".env", override=False)
+    except ImportError:
+        pass
+
     app = Flask(__name__, instance_relative_config=True)
 
     instance_path = Path(app.instance_path)

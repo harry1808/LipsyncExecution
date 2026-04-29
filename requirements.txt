@@ -19,6 +19,7 @@ torchvision
 numba
 requests
 Flask
+python-dotenv>=1.0.0
 Flask-Login
 Flask-SQLAlchemy
 protobuf>=4.0.0,<5.0.0
