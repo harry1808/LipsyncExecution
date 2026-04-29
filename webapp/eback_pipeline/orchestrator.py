@@ -14,6 +14,7 @@ import shutil
 import logging
 import subprocess
 import tempfile
+import platform
 from pathlib import Path
 from uuid import uuid4
 
@@ -60,6 +61,44 @@ def _get_eback_paths(assets_dir):
 
 # Wav2Lip expects 16 kHz mono audio; TTS often outputs 24/44.1 kHz. Mismatch causes blubbering/wrong length.
 WAV2LIP_SAMPLE_RATE = 16000
+
+# inference.py default wav2lip_batch_size=128 — fine on GPU; on CPU it often causes native crashes (0xC0000005).
+# Optional overrides (integers): WAV2LIP_FACE_DET_BATCH, WAV2LIP_INFER_BATCH
+def _wav2lip_subprocess_batch_sizes():
+    face_env = os.environ.get("WAV2LIP_FACE_DET_BATCH")
+    infer_env = os.environ.get("WAV2LIP_INFER_BATCH")
+    if face_env and face_env.isdigit() and infer_env and infer_env.isdigit():
+        return face_env.strip(), infer_env.strip()
+    try:
+        import torch
+
+        if torch.cuda.is_available():
+            # Match historical orchestrator: only lowered face det from upstream default 64 to 4; wav2lip stayed at default 128.
+            return "4", "128"
+    except Exception:
+        pass
+    # CPU: small batches to avoid access violations / OOM on long videos (Windows).
+    return "1", "4"
+
+
+def _wav2lip_subprocess_env():
+    env = os.environ.copy()
+    # Reduce OpenMP/MKL oversubscription on Windows (access violations during long CPU runs).
+    if platform.system() == "Windows":
+        env.setdefault("OMP_NUM_THREADS", "1")
+        env.setdefault("MKL_NUM_THREADS", "1")
+        env.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
+    return env
+
+
+def _format_wav2lip_exit_code(code: int) -> str:
+    # 3221225477 == unsigned -1073741819 == 0xC0000005 STATUS_ACCESS_VIOLATION
+    if code in (3221225477, -1073741819):
+        return (
+            f"{code} (native crash / access violation — often RAM pressure or "
+            f"PyTorch batch size on CPU; try shorter video or GPU)"
+        )
+    return str(code)
 
 
 def _resample_audio_to_16k(audio_path, temp_dir, logger=None):
@@ -122,7 +161,8 @@ def _run_wav2lip_full(video_path, audio_path, output_path, assets_dir, logger=No
     abs_video = str(video_path.resolve() if video_path.is_absolute() else video_path.absolute())
     abs_audio = str(audio_path.resolve() if audio_path.is_absolute() else audio_path.absolute())
     abs_output = str(output_path.resolve() if output_path.is_absolute() else output_path.absolute())
-    
+
+    face_det_bs, wav2lip_bs = _wav2lip_subprocess_batch_sizes()
     command = [
         sys.executable,
         str(inference_script),
@@ -130,7 +170,8 @@ def _run_wav2lip_full(video_path, audio_path, output_path, assets_dir, logger=No
         "--face", abs_video,
         "--audio", abs_audio,
         "--outfile", abs_output,
-        "--face_det_batch_size", "4",  # Reduced for memory efficiency
+        "--face_det_batch_size", face_det_bs,
+        "--wav2lip_batch_size", wav2lip_bs,
         "--resize_factor", "2",  # Resize for faster processing
     ]
     
@@ -152,6 +193,7 @@ def _run_wav2lip_full(video_path, audio_path, output_path, assets_dir, logger=No
     process = subprocess.Popen(
         command,
         cwd=str(wav2lip_dir),
+        env=_wav2lip_subprocess_env(),
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,  # Merge stderr into stdout to prevent deadlock
         text=True,
@@ -173,10 +215,11 @@ def _run_wav2lip_full(video_path, audio_path, output_path, assets_dir, logger=No
     
     if return_code != 0:
         error_msg = "\n".join(output_lines[-20:]) if output_lines else "No error details"
+        code_hint = _format_wav2lip_exit_code(return_code)
         if logger:
-            logger.error(f"[Wav2Lip] Failed with code {return_code}")
+            logger.error(f"[Wav2Lip] Failed with code {code_hint}")
             logger.error(f"[Wav2Lip] Error output:\n{error_msg}")
-        raise RuntimeError(f"Wav2Lip inference failed with code {return_code}:\n{error_msg}")
+        raise RuntimeError(f"Wav2Lip inference failed with code {code_hint}:\n{error_msg}")
     
     if not output_path.exists():
         raise RuntimeError(f"Wav2Lip did not produce output file: {output_path}")
