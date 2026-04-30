@@ -14,6 +14,7 @@ import shutil
 import logging
 import subprocess
 import tempfile
+import platform
 from pathlib import Path
 from uuid import uuid4
 
@@ -58,6 +59,36 @@ def _get_eback_paths(assets_dir):
     return eback_wav2lip, inference_script, checkpoint_path
 
 
+# Wav2Lip expects 16 kHz mono audio; TTS often outputs 24/44.1 kHz. Mismatch causes blubbering/wrong length.
+WAV2LIP_SAMPLE_RATE = 16000
+
+
+def _resample_audio_to_16k(audio_path, temp_dir, logger=None):
+    """
+    Resample audio to 16 kHz mono for Wav2Lip. Returns path to resampled WAV.
+    Wav2Lip's mel spectrogram is computed for 16 kHz; wrong sample rate causes artifacts and length issues.
+    """
+    audio_path = Path(audio_path)
+    out_path = Path(temp_dir) / f"audio_16k_{uuid4().hex[:8]}.wav"
+    ffmpeg_path = get_ffmpeg_path()
+    cmd = [
+        ffmpeg_path,
+        "-y", "-i", str(audio_path),
+        "-ar", str(WAV2LIP_SAMPLE_RATE),
+        "-ac", "1",
+        "-f", "wav",
+        str(out_path),
+    ]
+    result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+    if result.returncode != 0:
+        if logger:
+            logger.warning(f"Resample to 16k failed: {result.stderr}; using original audio")
+        return audio_path
+    if logger:
+        logger.info(f"[eBack] Resampled TTS audio to 16 kHz for Wav2Lip: {out_path}")
+    return out_path
+
+
 def _run_wav2lip_full(video_path, audio_path, output_path, assets_dir, logger=None):
     """
     Run Wav2Lip on the FULL video with FULL audio using eBack's implementation.
@@ -77,19 +108,23 @@ def _run_wav2lip_full(video_path, audio_path, output_path, assets_dir, logger=No
     if audio_size == 0:
         raise ValueError(f"Audio file is empty: {audio_path}")
     
-    if logger:
-        logger.info(f"Audio file validated: {audio_path} ({audio_size} bytes)")
-    
-    # Create temp directory for Wav2Lip output
+    # Resample to 16 kHz for Wav2Lip (avoids blubbering and wrong length from sample-rate mismatch)
     temp_dir = wav2lip_dir / "temp"
     temp_dir.mkdir(exist_ok=True)
+    audio_path = _resample_audio_to_16k(audio_path, temp_dir, logger=logger)
+    audio_path = Path(audio_path)
+    audio_size = audio_path.stat().st_size
+    
+    if logger:
+        logger.info(f"Audio file validated: {audio_path} ({audio_size} bytes)")
     
     # Use absolute paths for better reliability
     video_path = Path(video_path)
     abs_video = str(video_path.resolve() if video_path.is_absolute() else video_path.absolute())
     abs_audio = str(audio_path.resolve() if audio_path.is_absolute() else audio_path.absolute())
     abs_output = str(output_path.resolve() if output_path.is_absolute() else output_path.absolute())
-    
+
+    # Do not pass --wav2lip_batch_size: use eBack inference.py default (128) like the original integration.
     command = [
         sys.executable,
         str(inference_script),
@@ -97,9 +132,14 @@ def _run_wav2lip_full(video_path, audio_path, output_path, assets_dir, logger=No
         "--face", abs_video,
         "--audio", abs_audio,
         "--outfile", abs_output,
-        "--face_det_batch_size", "4",  # Reduced for memory efficiency
-        "--resize_factor", "2",  # Resize for faster processing
+        "--face_det_batch_size", "4",
+        "--resize_factor", "2",
     ]
+
+    popen_env = None
+    if platform.system() == "Windows":
+        popen_env = os.environ.copy()
+        popen_env.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
     
     if logger:
         logger.info(f"Running eBack Wav2Lip on full video...")
@@ -119,6 +159,7 @@ def _run_wav2lip_full(video_path, audio_path, output_path, assets_dir, logger=No
     process = subprocess.Popen(
         command,
         cwd=str(wav2lip_dir),
+        env=popen_env,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,  # Merge stderr into stdout to prevent deadlock
         text=True,
@@ -251,6 +292,8 @@ def process_video_with_lipsync(
 ):
     """
     Process a video with lip sync using the eBack Wav2Lip implementation.
+
+    Invoked from ``webapp.dubbing.process_video`` when lip-sync is enabled (after TTS WAV exists).
     
     This function:
     1. Detects if the video contains faces
