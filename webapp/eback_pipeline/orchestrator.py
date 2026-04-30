@@ -14,7 +14,6 @@ import shutil
 import logging
 import subprocess
 import tempfile
-import platform
 from pathlib import Path
 from uuid import uuid4
 
@@ -59,78 +58,6 @@ def _get_eback_paths(assets_dir):
     return eback_wav2lip, inference_script, checkpoint_path
 
 
-# Wav2Lip expects 16 kHz mono audio; TTS often outputs 24/44.1 kHz. Mismatch causes blubbering/wrong length.
-WAV2LIP_SAMPLE_RATE = 16000
-
-# inference.py default wav2lip_batch_size=128 — fine on GPU; on CPU it often causes native crashes (0xC0000005).
-# Optional overrides (integers): WAV2LIP_FACE_DET_BATCH, WAV2LIP_INFER_BATCH
-def _wav2lip_subprocess_batch_sizes():
-    face_env = os.environ.get("WAV2LIP_FACE_DET_BATCH")
-    infer_env = os.environ.get("WAV2LIP_INFER_BATCH")
-    if face_env and face_env.isdigit() and infer_env and infer_env.isdigit():
-        fb, ib = face_env.strip(), infer_env.strip()
-        # Ignore the old ultra-safe 1/4 preset (orders of magnitude slower than historical eBack defaults).
-        if fb == "1" and ib == "4":
-            return "4", "48"
-        return fb, ib
-    try:
-        import torch
-
-        if torch.cuda.is_available():
-            # Match historical orchestrator: only lowered face det from upstream default 64 to 4; wav2lip stayed at default 128.
-            return "4", "128"
-    except Exception:
-        pass
-    # CPU: default 128 can crash (0xC0000005); 1/4 was far too slow vs historical eBack defaults.
-    # 4/48 matches the old orchestrator face batch and ~1/3 the Wav2Lip steps of batch 128 — good default on CPU.
-    # Lower with WAV2LIP_* env if unstable; raise toward 64/128 if stable and you want more speed.
-    return "4", "48"
-
-
-def _wav2lip_subprocess_env():
-    env = os.environ.copy()
-    # Avoid duplicate MKL / OpenMP init issues on Windows; do not force single-thread (that made CPU runs very slow).
-    if platform.system() == "Windows":
-        env.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
-    return env
-
-
-def _format_wav2lip_exit_code(code: int) -> str:
-    # 3221225477 == unsigned -1073741819 == 0xC0000005 STATUS_ACCESS_VIOLATION
-    if code in (3221225477, -1073741819):
-        return (
-            f"{code} (native crash / access violation — often RAM pressure or "
-            f"PyTorch batch size on CPU; try shorter video or GPU)"
-        )
-    return str(code)
-
-
-def _resample_audio_to_16k(audio_path, temp_dir, logger=None):
-    """
-    Resample audio to 16 kHz mono for Wav2Lip. Returns path to resampled WAV.
-    Wav2Lip's mel spectrogram is computed for 16 kHz; wrong sample rate causes artifacts and length issues.
-    """
-    audio_path = Path(audio_path)
-    out_path = Path(temp_dir) / f"audio_16k_{uuid4().hex[:8]}.wav"
-    ffmpeg_path = get_ffmpeg_path()
-    cmd = [
-        ffmpeg_path,
-        "-y", "-i", str(audio_path),
-        "-ar", str(WAV2LIP_SAMPLE_RATE),
-        "-ac", "1",
-        "-f", "wav",
-        str(out_path),
-    ]
-    result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
-    if result.returncode != 0:
-        if logger:
-            logger.warning(f"Resample to 16k failed: {result.stderr}; using original audio")
-        return audio_path
-    if logger:
-        logger.info(f"[eBack] Resampled TTS audio to 16 kHz for Wav2Lip: {out_path}")
-    return out_path
-
-
 def _run_wav2lip_full(video_path, audio_path, output_path, assets_dir, logger=None):
     """
     Run Wav2Lip on the FULL video with FULL audio using eBack's implementation.
@@ -150,36 +77,19 @@ def _run_wav2lip_full(video_path, audio_path, output_path, assets_dir, logger=No
     if audio_size == 0:
         raise ValueError(f"Audio file is empty: {audio_path}")
     
-    # Resample to 16 kHz for Wav2Lip (avoids blubbering and wrong length from sample-rate mismatch)
-    temp_dir = wav2lip_dir / "temp"
-    temp_dir.mkdir(exist_ok=True)
-    audio_path = _resample_audio_to_16k(audio_path, temp_dir, logger=logger)
-    audio_path = Path(audio_path)
-    audio_size = audio_path.stat().st_size
-    
     if logger:
         logger.info(f"Audio file validated: {audio_path} ({audio_size} bytes)")
+    
+    # Create temp directory for Wav2Lip output
+    temp_dir = wav2lip_dir / "temp"
+    temp_dir.mkdir(exist_ok=True)
     
     # Use absolute paths for better reliability
     video_path = Path(video_path)
     abs_video = str(video_path.resolve() if video_path.is_absolute() else video_path.absolute())
     abs_audio = str(audio_path.resolve() if audio_path.is_absolute() else audio_path.absolute())
     abs_output = str(output_path.resolve() if output_path.is_absolute() else output_path.absolute())
-
-    face_det_bs, wav2lip_bs = _wav2lip_subprocess_batch_sizes()
-    try:
-        import torch as _torch
-
-        _lip_dev = "CUDA" if _torch.cuda.is_available() else "CPU"
-    except Exception:
-        _lip_dev = "unknown"
-    if logger:
-        logger.info(
-            f"[Wav2Lip] subprocess device≈{_lip_dev} "
-            f"(face_det_batch={face_det_bs}, wav2lip_batch={wav2lip_bs}). "
-            f"CPU-only runs are much slower than GPU; set WAV2LIP_FACE_DET_BATCH and "
-            f"WAV2LIP_INFER_BATCH in .env to tune speed vs stability."
-        )
+    
     command = [
         sys.executable,
         str(inference_script),
@@ -187,8 +97,7 @@ def _run_wav2lip_full(video_path, audio_path, output_path, assets_dir, logger=No
         "--face", abs_video,
         "--audio", abs_audio,
         "--outfile", abs_output,
-        "--face_det_batch_size", face_det_bs,
-        "--wav2lip_batch_size", wav2lip_bs,
+        "--face_det_batch_size", "4",  # Reduced for memory efficiency
         "--resize_factor", "2",  # Resize for faster processing
     ]
     
@@ -210,7 +119,6 @@ def _run_wav2lip_full(video_path, audio_path, output_path, assets_dir, logger=No
     process = subprocess.Popen(
         command,
         cwd=str(wav2lip_dir),
-        env=_wav2lip_subprocess_env(),
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,  # Merge stderr into stdout to prevent deadlock
         text=True,
@@ -232,11 +140,10 @@ def _run_wav2lip_full(video_path, audio_path, output_path, assets_dir, logger=No
     
     if return_code != 0:
         error_msg = "\n".join(output_lines[-20:]) if output_lines else "No error details"
-        code_hint = _format_wav2lip_exit_code(return_code)
         if logger:
-            logger.error(f"[Wav2Lip] Failed with code {code_hint}")
+            logger.error(f"[Wav2Lip] Failed with code {return_code}")
             logger.error(f"[Wav2Lip] Error output:\n{error_msg}")
-        raise RuntimeError(f"Wav2Lip inference failed with code {code_hint}:\n{error_msg}")
+        raise RuntimeError(f"Wav2Lip inference failed with code {return_code}:\n{error_msg}")
     
     if not output_path.exists():
         raise RuntimeError(f"Wav2Lip did not produce output file: {output_path}")
@@ -344,8 +251,6 @@ def process_video_with_lipsync(
 ):
     """
     Process a video with lip sync using the eBack Wav2Lip implementation.
-
-    Invoked from ``webapp.dubbing.process_video`` when lip-sync is enabled (after TTS WAV exists).
     
     This function:
     1. Detects if the video contains faces
